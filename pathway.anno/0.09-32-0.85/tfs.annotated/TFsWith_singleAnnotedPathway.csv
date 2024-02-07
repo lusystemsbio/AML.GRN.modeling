@@ -1,0 +1,30 @@
+tf,pathway,pathway_id
+ATM,p53 signaling pathway,4
+CTBP1,NA,6
+DNMT1,p53 signaling pathway,4
+DNMT3A,p53 signaling pathway,4
+E2F1,Cellular senescence,2
+E2F2,Cellular senescence,2
+E2F4,Cell cycle,2
+E2F5,Cellular senescence,2
+EBF1,NA,6
+ETS2,Cellular senescence,2
+GATA1,JAK-STAT signaling pathway,3
+IRF3,NA,6
+IRF7,JAK-STAT signaling pathway,3
+MCM3,Cell cycle,2
+MCM5,Cell cycle,2
+MYBL2,Cellular senescence,2
+MYC,Cellular senescence,2
+MYCN,Cell cycle,2
+NFIC,AMPK signaling pathway,1
+PAX5,p53 signaling pathway,4
+POU2F1,JAK-STAT signaling pathway,3
+RARA,AMPK signaling pathway,1
+RB1,Cell cycle,2
+SMARCA4,p53 signaling pathway,4
+STAT3,JAK-STAT signaling pathway,3
+TFDP1,Cellular senescence,2
+TP53,p53 signaling pathway,4
+TP63,p53 signaling pathway,4
+USF2,PI3K-Akt signaling pathway,5

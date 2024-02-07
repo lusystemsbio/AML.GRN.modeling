@@ -1,0 +1,7 @@
+circuit.pair,num_common.nodes,nodeCount.pair,circuit.idx.pair
+circuit_1.circuit_2,52,52_58,0.07-32-0.75_0.07-32-0
+circuit_1.circuit_3,28,52_29,0.07-32-0.75_0.09-32-0.85
+circuit_1.circuit_4,22,52_22,0.07-32-0.75_0.16-28-0.85
+circuit_2.circuit_3,28,58_29,0.07-32-0_0.09-32-0.85
+circuit_2.circuit_4,22,58_22,0.07-32-0_0.16-28-0.85
+circuit_3.circuit_4,21,29_22,0.09-32-0.85_0.16-28-0.85

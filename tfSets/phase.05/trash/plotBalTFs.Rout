@@ -1,0 +1,78 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> remove(list = ls())
+> 
+> source('./functions.tfBalance.R')
+> 
+> inputDir <- './data/'
+> 
+> fname.data <- paste(inputDir, 'stats.upTF.csv', sep = '')
+> stats.upTF.df <- read.csv(file = fname.data, header = T) 
+> YLIMIT <- c(0, 32)
+> 
+> figdir <- './figs/'
+> dir.create(figdir)
+> 
+> method <- "Netact"
+> stats.df <- stats.upTF.df[stats.upTF.df$method==method, ]
+> figname <- paste(figdir, 'stats.', method, '.pdf', sep = '') 
+> plotStat(stats.df=stats.df, colors, figname=figname, ylimit=YLIMIT)
+null device 
+          1 
+> 
+> method <- "MARINa"
+> stats.df <- stats.upTF.df[stats.upTF.df$method==method, ]
+> figname <- paste(figdir, 'stats.', method, '.pdf', sep = '') 
+> plotStat(stats.df=stats.df, colors, figname=figname, ylimit=YLIMIT)
+null device 
+          1 
+> 
+> method <- "RI"
+> stats.df <- stats.upTF.df[stats.upTF.df$method==method, ]
+> figname <- paste(figdir, 'stats.', method, '.pdf', sep = '') 
+> plotStat(stats.df=stats.df, colors, figname=figname, ylimit=YLIMIT)
+null device 
+          1 
+> 
+> method <- "COMB"
+> stats.df <- stats.upTF.df[stats.upTF.df$method==method, ]
+> figname <- paste(figdir, 'stats.', method, '.pdf', sep = '') 
+> plotStat.comb(stats.df=stats.df, colors, figname=figname, ylimit=YLIMIT*3)
+null device 
+          1 
+> 
+> 
+> colors <- c('black', 'magenta','blue', 'red') 
+> names(colors) <- c("TFs", "ACTUAL", "CTRL", "TRTMT") 
+> ylimit=c(0, 150)
+> plot(stats.df$no_tfs*3, col=colors["TFs"], pch = 19,  
++      xlim = c(1, 110), ylim = ylimit, xaxt = 'none',
++      xlab = 'feature ratio', ylab = 'Number of TFs')
+> points(stats.df$no_tfs_actual, col=colors["ACTUAL"])
+> 
+> plot(stats.df$no_tfs*3-stats.df$no_tfs_actual)
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  0.527   0.054   0.571 

@@ -1,0 +1,84 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> remove(list = ls())
+> 
+> source('./functions.tfBalance.R')
+> inputDir <- './data/'
+> 
+> fname.data <- paste(inputDir, 'stats.upTF.csv', sep = '')
+> stats.upTF.df <- read.csv(file = fname.data, header = T) 
+> 
+> min(stats.upTF.df$TRTMT_CTRL)
+[1] 0
+> max(stats.upTF.df$TRTMT_CTRL)
+[1] 0.9090909
+> 
+> XLIMIT <- c(1, 170)
+> YLIMIT <- c(0, 1)
+> 
+> figdir <- './figs/'
+> dir.create(figdir)
+Warning message:
+In dir.create(figdir) : './figs' already exists
+> 
+> figname <- paste(figdir, 'ratio-upTFs.', '.pdf', sep = '')
+> WIDTH <- 10
+> HEIGHT <- 8 
+> pdf(file = figname, width=WIDTH, height=HEIGHT, paper='special')
+> 
+> par(mfrow=c(4,1))
+> par(mar=c(1.0, 3.1, 1.1, 1.1), # bottom, left, top, right
++     mgp=c(3, 1, 0), las=0)
+> 
+> method <- "Netact"
+> ratio_upTFs <- stats.upTF.df[stats.upTF.df$method==method, 'TRTMT_CTRL']
+> plot(stats.upTF.df$TRTMT_CTRL, pch = 19, type = 'n',
++      xlim = XLIMIT, ylim = YLIMIT, xaxt='n')
+>       
+> points(ratio_upTFs)
+> 
+> method <- "MARINa"
+> ratio_upTFs <- stats.upTF.df[stats.upTF.df$method==method, 'TRTMT_CTRL']
+> plot(stats.upTF.df$TRTMT_CTRL, pch = 19, type = 'n',
++      xlim = XLIMIT, ylim = YLIMIT, xaxt='n') 
+> points(ratio_upTFs)
+>  
+> method <- "RI"
+> ratio_upTFs <- stats.upTF.df[stats.upTF.df$method==method, 'TRTMT_CTRL']
+> plot(stats.upTF.df$TRTMT_CTRL, pch = 19, type = 'n',
++      xlim = XLIMIT, ylim = YLIMIT, xaxt='n') 
+> points(ratio_upTFs)
+> 
+> method <- "COMB"
+> ratio_upTFs <- stats.upTF.df[stats.upTF.df$method==method, 'TRTMT_CTRL']
+> plot(stats.upTF.df$TRTMT_CTRL, pch = 19, type = 'n',
++      xlim = XLIMIT, ylim = YLIMIT, xaxt='n')
+> points(ratio_upTFs) 
+> dev.off()
+null device 
+          1 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  0.210   0.036   0.236 

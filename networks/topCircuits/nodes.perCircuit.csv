@@ -1,0 +1,5 @@
+circuit.name,num_nodes,circuit.idx
+circuit_1,52,0.07-32-0.75
+circuit_2,58,0.07-32-0
+circuit_3,29,0.09-32-0.85
+circuit_4,22,0.16-28-0.85

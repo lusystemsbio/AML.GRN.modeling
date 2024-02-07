@@ -1,0 +1,133 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> 
+> library(sRACIPE)
+Loading required package: SummarizedExperiment
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+Loading required package: DelayedArray
+Loading required package: matrixStats
+
+Attaching package: ‘matrixStats’
+
+The following objects are masked from ‘package:Biobase’:
+
+    anyMissing, rowMedians
+
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges
+
+The following objects are masked from ‘package:base’:
+
+    aperm, apply, rowsum
+
+Loading required package: Rcpp
+> 
+> # Constants 
+> #------------
+> outdir <- './tfs.annotated/'
+> 
+> # Obtain circuit index for the top circuit
+> #-----------------------------------------
+> circuit_metrics <- read.csv(file = '../networks/results/summary.circuits.sim.sorted.csv', row.names = 1)
+> circuit_idx <- rownames(circuit_metrics)[1]
+> circuit_idx # "0.07-32-0.75" - top circuit in all topologies
+[1] "0.07-32-0.75"
+> 
+> # Load racipe object 
+> #------------------------------
+> racipe <- readRDS(file = paste('../networks/circuits.sim/circuit_simulated_', 
++                                circuit_idx, '.rds', sep = '') )
+> names(racipe)
+ [1] "ARNT"    "ATF2"    "ATM"     "CTBP1"   "DNMT1"   "DNMT3A"  "E2F1"   
+ [8] "E2F2"    "E2F4"    "E2F5"    "ELK1"    "ETS2"    "GATA1"   "HNF4A"  
+[15] "IRF3"    "IRF7"    "KLF1"    "MCM2"    "MCM4"    "MECOM"   "MTF1"   
+[22] "MYBL2"   "MYC"     "MYCN"    "NFIC"    "NR0B1"   "NR5A1"   "PAX5"   
+[29] "POU2F1"  "RARA"    "RB1"     "RUNX1"   "SMARCA4" "SOS1"    "STAT3"  
+[36] "STAT6"   "TCF3"    "TFDP1"   "TP53"    "TP73"    "USF2"    "CUX1"   
+[43] "MCM3"    "MCM5"    "POU3F2"  "MCM6"    "NFYA"    "EBF1"    "NR1H4"  
+[50] "SMAD9"   "PBX1"    "HAND2"  
+> length(names(racipe))
+[1] 52
+> 
+> # Extract circt
+> #--------------
+> circuit_tpo <- sracipeCircuit(racipe)
+> length(unique(sort(c(circuit_tpo$Source, circuit_tpo$Target)) ))
+[1] 52
+> 
+> # Save the circuit
+> #-----------------
+> fname.out <- paste(outdir, 'circuit-', circuit_idx, '.tpo' ,sep = '')
+> write.table(circuit_tpo, file = fname.out, sep = '\t', quote = F, row.names = F)
+> 
+> proc.time()
+   user  system elapsed 
+  5.853   0.293   6.151 

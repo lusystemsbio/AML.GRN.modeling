@@ -1,0 +1,51 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> 
+> outdir <- './degs/'
+> dir.create(outdir)
+Warning message:
+In dir.create(outdir) : './degs' already exists
+> 
+> # DE results
+> #------------
+> fname.de.results <- '../../data.tfs/de.results.rda'
+> load(fname.de.results) # loads object de.results 
+> class(de.results)
+[1] "list"
+> 
+> # extract DE genes: 
+> DEGs <- de.results$degs
+> class(DEGs) 
+[1] "character"
+> rm(de.results)
+> length(DEGs)
+[1] 8497
+> write.table(DEGs, file = paste(outdir, 'DEGs.txt', sep = ''), 
++             col.names = F, row.names = F, quote = F)
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  0.417   0.046   0.452 
