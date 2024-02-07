@@ -1,0 +1,263 @@
+
+R version 3.6.1 (2019-07-05) -- "Action of the Toes"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> # Set working direcotry
+> #---------------------
+> rm(list=ls()) 
+> setwd(getwd())
+> 
+> NUM_OF_TFS <- 50
+> 
+> # Set directories 
+> #---------------- 
+> libdir <- '../lib/'
+> 
+> figdir <- './figs/'
+> dir.create(figdir)
+Warning message:
+In dir.create(figdir) : './figs' already exists
+>  
+> # Load library functions
+> #----------------------- 
+> library(NetAct) 
+> library(Biobase) 
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min
+
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following object is masked from ‘package:Biobase’:
+
+    combine
+
+The following objects are masked from ‘package:BiocGenerics’:
+
+    combine, intersect, setdiff, union
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+Warning message:
+package ‘dplyr’ was built under R version 3.6.2 
+> 
+> # Load TFs file
+> #-------------- 
+> fname_tf  <- "./tfs.Netact.txt"
+> tfs.all.df <- read.table(file = fname_tf, header = T)   
+> 
+> tfs.df <- data.frame(tfs.all.df$tf[1:NUM_OF_TFS]) 
+> colnames(tfs.df) <- 'TF'
+> 
+> # Load expression file
+> #--------------------- 
+> fname.eset <- 'eset.brain_array.rda'
+> load(fname.eset) 
+> class(eset.brain_array) 
+[1] "ExpressionSet"
+attr(,"package")
+[1] "Biobase"
+> 
+> # Load DE results
+> #--------------------- 
+> fname.de.results <- 'de.results.rda'
+> load(fname.de.results) 
+> 
+> # Obtain expressions for CONTROL and TREATMENT 
+> #--------------------------------------------
+> # Get data for the current comparison 
+> data <- exprs(eset.brain_array) 
+> dim(data) 
+[1] 19532    20
+> 
+> # Load old gene set DB: hgs
+> #----------------
+> # fname.tfdb <- './hgs.rdata'
+> # load(fname.tfdb)
+> # length(names(hgs))
+> 
+> #fname.tfdb <- './hgs.RI.combined.filtered.rds' 
+> #fname.tfdb <- './hgs.rcis.combined.filtered.rds' 
+> fname.tfdb <- './hgs.rds' 
+> hgs <- readRDS(fname.tfdb)
+> length(names(hgs))
+[1] 316
+> 
+> names(de.results)
+[1] "table"       "rank_vector" "degs"        "e_batch"    
+> 
+> # Retain the TFs that are in the TF-target DB - used when 
+> #-------------------------------------------
+> tfs.valid <- intersect(names(hgs), tfs.df$TF)
+> length(tfs.valid)  
+[1] 50
+> 
+> # Calculate activities 
+> #---------------------- 
+> # a = TF_Activity(tfs = as.character(tfs.df$TF),
+> #                 GSDB=hgs, #GSDB=hDB,
+> #                 eset=data,
+> #                 DErslt=de.results$Overall #de.results  #de.results$Overall
+> # )
+> 
+> a = TF_Activity(tfs = as.character(tfs.df$TF), #tfs.valid 
++                 GSDB=hgs, #GSDB=hDB,
++                 eset=data,
++                 DErslt=de.results  #de.results$Overall
++ )
+[1] "RUNX1"
+[1] "MYC"
+[1] "RB1"
+[1] "MCM4"
+[1] "SMAD5"
+[1] "SMAD9"
+[1] "GATA1"
+[1] "MCM2"
+[1] "DNMT1"
+[1] "TP53"
+[1] "MCM3"
+[1] "MCM7"
+[1] "MYBL2"
+[1] "NR1H4"
+[1] "SOS1"
+[1] "SOS2"
+[1] "MEF2C"
+[1] "NR0B1"
+[1] "TP73"
+[1] "CRY1"
+[1] "E2F4"
+[1] "MYCN"
+[1] "SMARCA4"
+[1] "CTBP1"
+[1] "ATM"
+[1] "PAX8"
+[1] "MCM5"
+[1] "NR5A1"
+[1] "MCM6"
+[1] "ARNT"
+[1] "PAX5"
+[1] "NFIC"
+[1] "APEX1"
+[1] "ARNTL"
+[1] "HDAC2"
+[1] "NPM1"
+[1] "E2F1"
+[1] "MYB"
+[1] "SRF"
+[1] "IRF9"
+[1] "STAT1"
+[1] "GATA2"
+[1] "ESR2"
+[1] "ATF6"
+[1] "NFE2L2"
+[1] "E2F2"
+[1] "USF2"
+[1] "TSG101"
+[1] "BRCA1"
+> 
+> class(a)
+[1] "list"
+> dim(a$all_activities)
+[1] 49 20
+> act.tmp <- a$all_activities
+>  
+> # Plot activities and expressions
+> #--------------------------------
+> WIDTH= 12 #16 
+> HEIGHT=12 #20 #12
+> fname_heatmap <- paste(figdir, 'activity_vs_expression.',  
++                        toString(WIDTH), 'X', toString(HEIGHT), 
++                        '.pdf', 
++                        sep = '') 
+> pdf(file = fname_heatmap, width = WIDTH, height = HEIGHT, paper = 'special')
+> Combine_heatmap(a$all_activities, eset=eset.brain_array) 
+Loading required package: ComplexHeatmap
+Loading required package: grid
+========================================
+ComplexHeatmap version 2.2.0
+Bioconductor page: http://bioconductor.org/packages/ComplexHeatmap/
+Github page: https://github.com/jokergoo/ComplexHeatmap
+Documentation: http://jokergoo.github.io/ComplexHeatmap-reference
+
+If you use it in published research, please cite:
+Gu, Z. Complex heatmaps reveal patterns and correlations in multidimensional 
+  genomic data. Bioinformatics 2016.
+========================================
+
+Loading required package: circlize
+========================================
+circlize version 0.4.10
+CRAN page: https://cran.r-project.org/package=circlize
+Github page: https://github.com/jokergoo/circlize
+Documentation: https://jokergoo.github.io/circlize_book/book/
+
+If you use it in published research, please cite:
+Gu, Z. circlize implements and enhances circular visualization
+  in R. Bioinformatics 2014.
+
+This message can be suppressed by:
+  suppressPackageStartupMessages(library(circlize))
+========================================
+
+Warning message:
+package ‘circlize’ was built under R version 3.6.2 
+> dev.off()
+null device 
+          1 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  8.686   0.354   9.054 

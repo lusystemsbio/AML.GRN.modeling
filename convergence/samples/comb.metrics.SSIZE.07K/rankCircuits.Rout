@@ -1,0 +1,59 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> 
+> source('../../../networks/functions.R')
+> 
+> datadir <- './results/'
+> 
+> circuit_metrics.sim.list <- readRDS(file = paste0(datadir,  './circuit_metrics.sim.list.rds'))
+> names(circuit_metrics.sim.list)
+ [1] "S1"  "S2"  "S3"  "S4"  "S5"  "S6"  "S7"  "S8"  "S9"  "S10"
+> 
+> 
+> circuit_metrics.sim.sorted <- list()
+> for(sample_name in names(circuit_metrics.sim.list) ){
++    print(sample_name)
++    circuit_metrics.sim <- circuit_metrics.sim.list[[sample_name]] 
++    circuit_metrics.sim.s <- sortByTwoIndices(circuit_metrics.sim)
++    circuit_metrics.sim.sorted[[sample_name]]  <- sortByTwoIndices(circuit_metrics.sim.list[[sample_name]]) 
++ }
+[1] "S1"
+[1] "S2"
+[1] "S3"
+[1] "S4"
+[1] "S5"
+[1] "S6"
+[1] "S7"
+[1] "S8"
+[1] "S9"
+[1] "S10"
+> names(circuit_metrics.sim.sorted)
+ [1] "S1"  "S2"  "S3"  "S4"  "S5"  "S6"  "S7"  "S8"  "S9"  "S10"
+> 
+> saveRDS(circuit_metrics.sim.sorted, file = paste0(datadir,  './circuit_metrics.sim.sorted.rds'))
+> 
+> proc.time()
+   user  system elapsed 
+  4.163   0.422   4.650 

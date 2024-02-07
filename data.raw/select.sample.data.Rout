@@ -1,0 +1,149 @@
+
+R version 3.4.3 (2017-11-30) -- "Kite-Eating Tree"
+Copyright (C) 2017 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> "
++  (1) Load raw brain array data 
++  (2) Load and combine ids for control and two treatments  
++  (3) Select raw brain array data for the combined ids 
++  (4) Change columans of the selected data with treatment tag
++  (4) Save selected raw brain array data
++ "
+[1] "\n (1) Load raw brain array data \n (2) Load and combine ids for control and two treatments  \n (3) Select raw brain array data for the combined ids \n (4) Change columans of the selected data with treatment tag\n (4) Save selected raw brain array data\n"
+> 
+> rm(list=ls())
+> setwd(getwd())
+> 
+> #------------------------------------------------------#
+> # CONSTANTS
+> #------------------------------------------------------#
+> # TREATMENT.1.NAME <- 'IDH1'
+> # TREATMENT.2.NAME <- 'IDH2'
+> 
+> TREATMENT.1.NAME <- 'IDH'
+> TREATMENT.2.NAME <- 'IDH'
+> 
+> TREATMENT.NAME <- 'IDH' # includes IDH1 and IDH2
+> #------------------------------------------------------#
+> # Load libray functions
+> #------------------------------------------------------#
+> # libdir <- '../lib/'
+> source('./lib.data.raw.R')
+> 
+> #------------------------------------------------------#
+> # Load and map the column names of raw AML data
+> #------------------------------------------------------#
+> # INPUT FILE NAMES: 
+> # raw AML expression file:
+> fname_data <- "raw_brainarray.txt" 
+> # sample types: control vs treatment
+> fname_mapping ="erasmus_exp.txt"
+> rdata <- map.colnames_of_raw_data(fname_data = fname_data, 
++                                   fname_mapping = fname_mapping)
+Loading expression data ...
+Loading mapping data ...
+Mapping column names ...
+CD34_13234-010808.CEL CD34_13235-010808.CEL CD34_13236-310708.CEL CD34_13237-310708.CEL CD34_13238-010808.CEL CD34_13239-010808.CEL CD34_13241-010808.CEL CD34_13242-310708.CEL CD34_13243-010808.CEL CD34_13244-010808.CEL CD34_13245-010808.CEL13234 13235 13236 13237 13238 13239 13241 13242 13243 13244 13245CTRL.13234 CTRL.13235 CTRL.13236 CTRL.13237 CTRL.13238 CTRL.13239 CTRL.13241 CTRL.13242 CTRL.13243 CTRL.13244 CTRL.13245CD34_13234.010808.CEL CD34_13235.010808.CEL CD34_13236.310708.CEL CD34_13237.310708.CEL CD34_13238.010808.CEL CD34_13239.010808.CEL CD34_13241.010808.CEL CD34_13242.310708.CEL CD34_13243.010808.CEL CD34_13244.010808.CEL CD34_13245.010808.CELGSM158712.CEL GSM158716.CEL GSM158717.CEL GSM158719.CEL GSM158721.CEL GSM158738.CEL GSM158741.CEL GSM158742.CEL GSM158743.CEL GSM158745.CEL GSM158747.CEL GSM158749.CEL GSM158752.CEL GSM158753.CEL GSM158755.CEL GSM158757.CEL GSM158761.CEL GSM158766.CEL GSM158773.CEL GSM158782.CEL GSM158787.CEL GSM158788.CEL GSM158791.CEL GSM158792.CEL GSM158797.CEL GSM158799.CEL GSM158802.CEL GSM158803.CEL GSM158808.CEL GSM158815.CEL GSM158819.CEL GSM158822.CEL GSM158833.CEL GSM158842.CEL GSM158844.CEL GSM158848.CEL GSM158872.CEL GSM158873.CEL GSM158881.CEL GSM158882.CEL GSM158902.CEL GSM158907.CEL GSM158935.CEL GSM158937.CEL GSM158949.CEL GSM158958.CEL GSM158960.CEL GSM158961.CEL GSM158980.CEL GSM158981.CEL GSM158982.CEL GSM158984.CEL GSM158985.CEL GSM158990.CEL GSM158993.CEL GSM158994.CEL GSM158995.CEL GSM158996.CEL GSM158999.CEL GSM159004.CEL GSM159008.CEL GSM159013.CEL GSM159020.CEL GSM159024.CEL GSM159027.CEL GSM159029.CEL GSM159030.CEL GSM159031.CEL GSM159035.CEL GSM159036.CEL GSM159042.CEL GSM159043.CEL GSM159045.CEL GSM159048.CEL GSM159051.CEL GSM159060.CEL GSM159070.CEL GSM159071.CEL GSM159073.CEL GSM159079.CEL GSM159085.CEL GSM159086.CEL GSM159100.CEL GSM159101.CEL GSM159107.CEL GSM159108.CEL GSM159110.CEL GSM159113.CEL GSM159115.CEL GSM159119.CEL GSM159121.CEL GSM159124.CEL GSM159128.CEL GSM159132.CEL GSM159135.CEL GSM159138.CEL GSM159142.CEL GSM159144.CEL GSM159145.CEL GSM159148.CEL GSM159149.CEL GSM159154.CEL GSM159156.CEL GSM159157.CEL GSM159160.CEL GSM159166.CEL GSM768679_1448.cel GSM768682_3330.cel GSM768683_3331.cel GSM768695_5287.cel GSM768697_5289.cel GSM768705_5352.cel GSM768718_6456.cel GSM768724_6463.cel GSM768730_7118.cel GSM768740_7176.cel GSM768743_7322.cel GSM768745_7324.cel GSM768749_7328.cel
+2200 2204 2206 2208 2210 2230 2234 2235 2236 2238 2240 2242 2245 2246 2248 2250 2327 1316 2170 2179 2185 2186 2189 2190 2195 2197 2253 2254 2260 2268 2273 2276 322 2299 2301 2306 2545 2549 2666 2668 2748 2753 3314 3316 3328 5286 6237 6239 6881 6882 7081 7114 7115 7131 7139 7142 7143 7145 7150 7172 7178 7301 7308 7313 7316 7318 7319 7402 7407 5282 4334 4335 4337 4340 5358 6364 6374 6375 6379 6887 6945 6947 7051 7052 7058 7059 7062 7067 7070 7074 7076 7079 7122 7168 7180 7188 7273 7312 7408 7411 7412 7418 7420 7421 5360 6243 1448 3330 3331 5287 5289 5352 6456 6463 7118 7176 7322 7324 7328
+AML.2200 AML.2204 AML.2206 AML.2208 AML.2210 AML.2230 AML.2234 AML.2235 AML.2236 AML.2238 AML.2240 AML.2242 AML.2245 AML.2246 AML.2248 AML.2250 AML.2327 AML.1316 AML.2170 AML.2179 AML.2185 AML.2186 AML.2189 AML.2190 AML.2195 AML.2197 AML.2253 AML.2254 AML.2260 AML.2268 AML.2273 AML.2276 AML.322 AML.2299 AML.2301 AML.2306 AML.2545 AML.2549 AML.2666 AML.2668 AML.2748 AML.2753 AML.3314 AML.3316 AML.3328 AML.5286 AML.6237 AML.6239 AML.6881 AML.6882 AML.7081 AML.7114 AML.7115 AML.7131 AML.7139 AML.7142 AML.7143 AML.7145 AML.7150 AML.7172 AML.7178 AML.7301 AML.7308 AML.7313 AML.7316 AML.7318 AML.7319 AML.7402 AML.7407 AML.5282 AML.4334 AML.4335 AML.4337 AML.4340 AML.5358 AML.6364 AML.6374 AML.6375 AML.6379 AML.6887 AML.6945 AML.6947 AML.7051 AML.7052 AML.7058 AML.7059 AML.7062 AML.7067 AML.7070 AML.7074 AML.7076 AML.7079 AML.7122 AML.7168 AML.7180 AML.7188 AML.7273 AML.7312 AML.7408 AML.7411 AML.7412 AML.7418 AML.7420 AML.7421 AML.5360 AML.6243 AML.1448 AML.3330 AML.3331 AML.5287 AML.5289 AML.5352 AML.6456 AML.6463 AML.7118 AML.7176 AML.7322 AML.7324 AML.7328CTRL.13234 CTRL.13235 CTRL.13236 CTRL.13237 CTRL.13238 CTRL.13239 CTRL.13241 CTRL.13242 CTRL.13243 CTRL.13244 CTRL.13245 AML.2200 AML.2204 AML.2206 AML.2208 AML.2210 AML.2230 AML.2234 AML.2235 AML.2236 AML.2238 AML.2240 AML.2242 AML.2245 AML.2246 AML.2248 AML.2250 AML.2327 AML.1316 AML.2170 AML.2179 AML.2185 AML.2186 AML.2189 AML.2190 AML.2195 AML.2197 AML.2253 AML.2254 AML.2260 AML.2268 AML.2273 AML.2276 AML.322 AML.2299 AML.2301 AML.2306 AML.2545 AML.2549 AML.2666 AML.2668 AML.2748 AML.2753 AML.3314 AML.3316 AML.3328 AML.5286 AML.6237 AML.6239 AML.6881 AML.6882 AML.7081 AML.7114 AML.7115 AML.7131 AML.7139 AML.7142 AML.7143 AML.7145 AML.7150 AML.7172 AML.7178 AML.7301 AML.7308 AML.7313 AML.7316 AML.7318 AML.7319 AML.7402 AML.7407 AML.5282 AML.4334 AML.4335 AML.4337 AML.4340 AML.5358 AML.6364 AML.6374 AML.6375 AML.6379 AML.6887 AML.6945 AML.6947 AML.7051 AML.7052 AML.7058 AML.7059 AML.7062 AML.7067 AML.7070 AML.7074 AML.7076 AML.7079 AML.7122 AML.7168 AML.7180 AML.7188 AML.7273 AML.7312 AML.7408 AML.7411 AML.7412 AML.7418 AML.7420 AML.7421 AML.5360 AML.6243 AML.1448 AML.3330 AML.3331 AML.5287 AML.5289 AML.5352 AML.6456 AML.6463 AML.7118 AML.7176 AML.7322 AML.7324 AML.7328Warning message:
+package ‘data.table’ was built under R version 3.4.4 
+> 
+> #------------------------------------------------------#
+> # Load and combine CONTROL and TREATMENT groups
+> #------------------------------------------------------#
+> 
+> # File names for CONTROL AND TREATMENT groups
+> #-------------------------------------------#
+> fname_samples.CTRL <- 'samples.CONTROL.csv'  
+> fname_samples.TREATMENT.1 <- 'IDH1.txt'  
+> fname_samples.TREATMENT.2 <- 'IDH2.txt' 
+> 
+> 
+> # Load control ids:
+> samples.CTRL <- read.csv(fname_samples.CTRL, row.names = 1)
+> 
+> # Load ids treatment 1: 
+> samples.TREATMENT.1 <- read.table(file = fname_samples.TREATMENT.1, 
++                                   col.names = c("PATIENT.ID")) 
+> 
+> # Load ids treatment 2: 
+> samples.TREATMENT.2 <- read.table(file = fname_samples.TREATMENT.2, 
++                                   col.names = c("PATIENT.ID")) 
+> 
+> #samples.TREATMENT.1 <- as.character(samples.TREATMENT.1$PATIENT.ID)
+> 
+> 
+> sample_ids.TREATMENT.1 <- samples.TREATMENT.1$PATIENT.ID  
+> sample_ids.TREATMENT.2 <- samples.TREATMENT.2$PATIENT.ID 
+> 
+> # Load treatment IDs:
+> #--------------------
+> fname_samples.TREATMENT <- './IDH.txt'  
+> samples.TREATMENT <- read.table(file = fname_samples.TREATMENT, 
++                                 col.names = c("PATIENT.ID"))
+> sample_ids.TREATMENT <- samples.TREATMENT$PATIENT.ID  
+> 
+> # create column names and save them
+> #---------------------------------
+> colnames.new <- create.colnames(samples.CTRL, 
++                                 sample_ids.TREATMENT,
++                                 TREATMENT.NAME) 
+CTRL.13234 CTRL.13235 CTRL.13236 CTRL.13237 CTRL.13238 CTRL.13239 CTRL.13241 CTRL.13242 CTRL.13243 CTRL.13244 CTRL.13245IDH.2268 IDH.4335 IDH.5289 IDH.6887 IDH.7059 IDH.7180 IDH.7301 IDH.7418 IDH.7420> fname_samples <- 'samples.selected.txt'
+> write.table(colnames.new,file = fname_samples, quote = FALSE, 
++             row.names = FALSE, col.names = c("SAMPLE.ID")) 
+> 
+> 
+> 
+> # Combine sample names:
+> #-----------------------#
+> sample_ids.comb <- bind.sample_names(samples.CTRL, 
++                                      sample_ids.TREATMENT)
+CTRL.13234 CTRL.13235 CTRL.13236 CTRL.13237 CTRL.13238 CTRL.13239 CTRL.13241 CTRL.13242 CTRL.13243 CTRL.13244 CTRL.13245AML.2268 AML.4335 AML.5289 AML.6887 AML.7059 AML.7180 AML.7301 AML.7418 AML.7420> 
+> length(sample_ids.comb)
+[1] 20
+> sample_ids.comb
+ [1] "CTRL.13234" "CTRL.13235" "CTRL.13236" "CTRL.13237" "CTRL.13238"
+ [6] "CTRL.13239" "CTRL.13241" "CTRL.13242" "CTRL.13243" "CTRL.13244"
+[11] "CTRL.13245" "AML.2268"   "AML.4335"   "AML.5289"   "AML.6887"  
+[16] "AML.7059"   "AML.7180"   "AML.7301"   "AML.7418"   "AML.7420"  
+> 
+> 
+> # Extract data for the selected samples
+> #----------------------------------------#
+> rdata.sele <- rdata[ ,sample_ids.comb]
+> dim(rdata.sele)
+[1] 72092    20
+> 
+> # Change column names of the selected data with column tag 
+> # of TREATMENT TYPE/PATIENT TYPE
+> #-----------------------------------------------------------#
+> names(rdata.sele) <- colnames.new
+> 
+> 
+> # Save the selected data
+> #-------------------------#
+> cat('Save selected brain array data')
+Save selected brain array data> fname_data.sele <- 'raw_brainarray.sele.txt'
+> write.table(rdata.sele, file = fname_data.sele, sep='\t',
++             quote = FALSE, row.names = TRUE)
+> 
+> proc.time()
+   user  system elapsed 
+ 34.373   0.570  34.976 

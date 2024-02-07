@@ -1,0 +1,182 @@
+
+R version 3.6.1 (2019-07-05) -- "Action of the Toes"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> # Clean environment and set working direcotry
+> #--------------------------------------------
+> rm(list=ls())
+> setwd(getwd())
+> 
+> # set directory paths
+> #-------------------
+> datadir_raw <- '../data.raw/'
+> 
+> #---------------------#
+> # CONSTANTS
+> #---------------------#
+> NO_PERMUTATIONS <- 10000
+> CONTROL <- 'CTRL'
+> 
+> #---------------------#
+> # Load library functions
+> #---------------------#
+> libdir <- '../lib/'
+> source('./lib.data.tfs.R')
+> 
+> #---------------------#
+> # Load expression data
+> #---------------------#
+> fname_data <- paste0(datadir_raw, "raw_brainarray.sele.txt") 
+> edata <- read.table(file = fname_data, 
++                     header=TRUE, sep ='\t', 
++                     row.names=1)
+> dim(edata)
+[1] 72092    20
+> 
+> #------------------------------------------------------#
+> # Create an ExpressionSet instance from expression data
+> #------------------------------------------------------#
+> eset.brain_array <- create.ExpressionSet_instance(edata)   
+Loading required package: AnnotationDbi
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min
+
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+Loading required package: IRanges
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+
+'select()' returned many:1 mapping between keys and columns
+Warning messages:
+1: package ‘biomaRt’ was built under R version 3.6.3 
+2: package ‘IRanges’ was built under R version 3.6.2 
+3: package ‘S4Vectors’ was built under R version 3.6.3 
+> 
+> # Save eExpressionSet instance
+> #-----------------------------
+> save(eset.brain_array, file = paste('eset.brain_array.rda', sep = '', 
++                                     collapse = NULL))
+> 
+> #--------------------#
+> # Calculate DE genes
+> #--------------------#
+> # create compare list
+> #compList = c("CTRL-IDH1", "CTRL-IDH2")  
+> # Calculate multi comparison DE genes:
+> # library(NetAct)
+> # de.results = MicroProcess(eset = eset.brain_array, compList = compList) 
+> # summary(de.results)
+> 
+> compList = c("CTRL-IDH")  
+> library(NetAct)
+> de.results = MicroDegs(eset = eset.brain_array) 
+Loading required package: limma
+
+Attaching package: ‘limma’
+
+The following object is masked from ‘package:BiocGenerics’:
+
+    plotMA
+
+       CTRL-IDH
+Down       3526
+NotSig    11035
+Up         4971
+Warning message:
+package ‘limma’ was built under R version 3.6.2 
+> 
+> names(de.results)
+[1] "table"       "rank_vector" "degs"        "e_batch"    
+> 
+> # Save DE results
+> #----------------
+> save(de.results, file = paste('de.results.rda', sep = '', collapse = NULL))
+> 
+> # Load old gene set DB: hgs
+> #----------------
+> #fname.tfdb <- './hgs.rdata'  
+> #load(fname.tfdb)
+> 
+> #fname.tfdb <- './hgs.rcis.combined.filtered.rds' 
+> fname.tfdb <- './hgs.rds' 
+> hgs <- readRDS(file = fname.tfdb)
+> length(names(hgs))
+[1] 316
+> 
+> #--------------------------
+> # Find TFs by GSEA analysis
+> #--------------------------
+> names(de.results)
+[1] "table"       "rank_vector" "degs"        "e_batch"    
+> tfs.CTRL.IDH = TF_GSEA(GSDB=hgs, #GSDB=hDB, 
++               DErslt = de.results, #de.results$`CTRL-IDH`, #de.results$Overall, 
++               minSize=8, 
++               nperm = NO_PERMUTATIONS, 
++               qval = T) 
+start calculating ......
+==================================================finish calculating done !!!!!!
+> 
+> names(tfs.CTRL.IDH)
+[1] "tf"    "es"    "lens"  "pvals" "z"     "qvals"
+> class(tfs.CTRL.IDH)
+[1] "data.frame"
+> 
+> # save TFs
+> fname.tfs <- './tfs.CTRL.IDH.csv'
+> write.csv(tfs.CTRL.IDH, file = fname.tfs, row.names = FALSE, quote = FALSE)
+>  
+> 
+> proc.time()
+   user  system elapsed 
+151.316   1.103 152.872 

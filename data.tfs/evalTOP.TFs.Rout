@@ -1,0 +1,295 @@
+
+R version 3.6.1 (2019-07-05) -- "Action of the Toes"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> rm(list=ls()) 
+> setwd(getwd())
+> 
+> NUM_OF_TFS <- 50
+> 
+> # Load library functions
+> #----------------------- 
+> library(NetAct) 
+> library(Biobase) 
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min
+
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following object is masked from ‘package:Biobase’:
+
+    combine
+
+The following objects are masked from ‘package:BiocGenerics’:
+
+    combine, intersect, setdiff, union
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+Warning message:
+package ‘dplyr’ was built under R version 3.6.2 
+> 
+> 
+> # Load TFs file
+> #-------------- 
+> fname_tf  <- "./tfs.Netact.txt"
+> tfs.all.df <- read.table(file = fname_tf, header = T) 
+> 
+> tfs.netact <- data.frame(tfs.all.df[1:NUM_OF_TFS,] ) 
+> stats.tf <- data.frame(as.character(tfs.netact$tf), tfs.netact$qvals, -log10(tfs.netact$qvals)) 
+> colnames(stats.tf) <- c('tf', 'qval', 'nlogqval')
+> class(stats.tf$qval)
+[1] "numeric"
+> class(stats.tf$tf)
+[1] "factor"
+> 
+> library(ggplot2)
+Warning message:
+package ‘ggplot2’ was built under R version 3.6.2 
+> 
+> class(stats.tf$tf)
+[1] "factor"
+> stats.tf$tf <- factor(stats.tf$tf, levels =  stats.tf$tf) 
+> 
+> 
+> # Calculate TF activities 
+> #------------------------
+> fname.tfdb <- './hgs.rds' 
+> hgs <- readRDS(fname.tfdb)
+> length(names(hgs))
+[1] 316
+> 
+> # Load DE results
+> #--------------------- 
+> fname.de.results <- 'de.results.rda'
+> load(fname.de.results)
+> 
+> # Load expression file
+> #--------------------- 
+> fname.eset <- 'eset.brain_array.rda'
+> load(fname.eset) 
+> class(eset.brain_array) 
+[1] "ExpressionSet"
+attr(,"package")
+[1] "Biobase"
+> 
+> # Obtain expressions for CONTROL and TREATMENT 
+> #--------------------------------------------
+> # Get data for the current comparison 
+> data <- exprs(eset.brain_array) 
+> dim(data) 
+[1] 19532    20
+> 
+> 
+> # Retain the TFs that are in the TF-target DB
+> #-------------------------------------------
+> tfs.valid <- intersect(names(hgs), as.character(stats.tf$tf))
+> length(tfs.valid)
+[1] 50
+> 
+> # Calculate activities 
+> #---------------------- 
+> a = TF_Activity(tfs = tfs.valid, # as.character(tfs.df$TF),
++                 GSDB=hgs, #GSDB=hDB,
++                 eset=data,
++                 DErslt=de.results  #de.results$Overall
++ )
+[1] "APEX1"
+[1] "ARNT"
+[1] "ARNTL"
+[1] "ATF6"
+[1] "ATM"
+[1] "BRCA1"
+[1] "CRY1"
+[1] "CTBP1"
+[1] "DNMT1"
+[1] "E2F1"
+[1] "E2F2"
+[1] "E2F4"
+[1] "ESR2"
+[1] "GATA1"
+[1] "GATA2"
+[1] "HDAC2"
+[1] "IRF9"
+[1] "MCM2"
+[1] "MCM3"
+[1] "MCM4"
+[1] "MCM5"
+[1] "MCM6"
+[1] "MCM7"
+[1] "MEF2C"
+[1] "MYB"
+[1] "MYBL2"
+[1] "MYC"
+[1] "MYCN"
+[1] "NFE2L2"
+[1] "NFIC"
+[1] "NPM1"
+[1] "NR0B1"
+[1] "NR1H4"
+[1] "NR5A1"
+[1] "PAX5"
+[1] "PAX8"
+[1] "RB1"
+[1] "RUNX1"
+[1] "SMAD5"
+[1] "SMAD9"
+[1] "SMARCA4"
+[1] "SOS1"
+[1] "SOS2"
+[1] "SRF"
+[1] "STAT1"
+[1] "TP53"
+[1] "TP73"
+[1] "TSG101"
+[1] "USF2"
+> 
+> tf.act <- a$all_activities
+> 
+> # check and remove lost TFs from stats.df 
+> tfs_to_remove <- setdiff(as.character(stats.tf$tf), rownames(tf.act))
+> tmp.df <- stats.tf[which(!(as.character(stats.tf$tf) %in% tfs_to_remove)), ]
+> dim(tmp.df)
+[1] 49  3
+> stats.tf <- tmp.df
+> 
+> dim(tf.act)
+[1] 49 20
+> tf.act.ordered <- tf.act[as.character(stats.tf$tf), ] 
+> 
+> 
+> tf.act_avg <- data.frame(rowMeans(tf.act.ordered[,1:11]),  rowMeans(tf.act.ordered[,12:20])) 
+> colnames(tf.act_avg) <- c('ctrl', 'aml')
+> 
+> tmp.df <- stats.tf
+> #stats.tf <- data.frame(tmp.df$tf, tmp.df$qval, tmp.df$nlogqval, tf.act_avg$ctrl, tf.act_avg$aml)
+> stats.tf <- data.frame(tmp.df, tf.act_avg$ctrl, tf.act_avg$aml)
+> colnames(stats.tf) <- c(colnames(tmp.df), 'act.ctrl', 'act.aml')
+> 
+> 
+> # Plot for q values
+> #-----------------
+> p1 <- ggplot(stats.tf) + 
++    geom_bar(aes(x=tf, y=nlogqval),
++             stat="identity", fill="forestgreen", alpha=0.5)
+> p1
+> p2 <- p1 + theme(axis.text.x = element_blank(),  #element_text(angle = 90, hjust = 0.7, vjust = 0.5),
++                  axis.title.x = element_blank(),
++                  axis.title.y = element_blank())
+> p2
+> plot.qval <- p2
+> 
+> # Plot for activity (CTRL)
+> #-------------------------
+> p1 <- ggplot(stats.tf) + 
++    geom_bar(aes(x=tf, y=act.ctrl),
++             stat="identity", fill="blue", alpha=0.5) + ylim(c(-0.90, 0.90))
+> p1
+> p2 <- p1 + theme(axis.text.x = element_blank(), #element_text(angle = 90, hjust = 0.7, vjust = 0.5), 
++                  axis.title.x = element_blank(),
++                  axis.title.y = element_blank()) 
+> 
+> p2
+> 
+> plot.act.ctrl <- p2
+> 
+> 
+> # Plot for activity (AML)
+> #-------------------------
+> p1 <- ggplot(stats.tf) + 
++    geom_bar(aes(x=tf, y=act.aml),
++             stat="identity", fill="red", alpha=0.5) + ylim(c(-0.9, 0.9))
+> p1
+> p2 <- p1 + theme(axis.text.x = element_text(angle = 90, hjust = 0.7, vjust = 0.5), 
++                  axis.title.x = element_blank(),
++                  axis.title.y = element_blank()) 
+> p2
+> 
+> plot.act.aml <- p2
+> 
+> plot.list <- list(plot.qval, plot.act.ctrl, plot.act.aml)
+> library(gridExtra)
+
+Attaching package: ‘gridExtra’
+
+The following object is masked from ‘package:dplyr’:
+
+    combine
+
+The following object is masked from ‘package:Biobase’:
+
+    combine
+
+The following object is masked from ‘package:BiocGenerics’:
+
+    combine
+
+> plot_on_grid <- grid.arrange(grobs=plot.list, nrow=3)
+> 
+> 
+> 
+> WIDTH <- 12
+> HEIGHT <- 6
+> outdir <- './figs/'
+> dir.create(outdir)
+Warning message:
+In dir.create(outdir) : './figs' already exists
+> fname.out <- paste(outdir, 'qvals-vs-activities-', WIDTH, '-', HEIGHT, '.pdf', sep = '')
+> ggsave(filename = fname.out, plot_on_grid, width = WIDTH, height = HEIGHT) 
+> 
+> proc.time()
+   user  system elapsed 
+  8.758   0.354   9.140 

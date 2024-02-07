@@ -1,0 +1,811 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> 
+> NO_SAMPLES <- 10
+> SAMPLE_SIZE <- 10000
+> NO_TOP_CIRCUITS <- 10
+> PERCENT_REDUCTION <- 90
+> 
+> library(sRACIPE)
+Loading required package: SummarizedExperiment
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+Loading required package: DelayedArray
+Loading required package: matrixStats
+
+Attaching package: ‘matrixStats’
+
+The following objects are masked from ‘package:Biobase’:
+
+    anyMissing, rowMedians
+
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges
+
+The following objects are masked from ‘package:base’:
+
+    aperm, apply, rowsum
+
+Loading required package: Rcpp
+> source('../../../networks/functions.R')
+> source('../../../networks/heatmapSimilarity.updated.R') 
+> source('./functions.R')
+> 
+> outdir <- './results/'
+> dir.create(outdir)
+> 
+> # Load top circuits
+> #------------------
+> #circuits <- readRDS('../../../networks/circuits/circuits.uniq.rds')
+> circuit_metrics.sim.sorted <- read.csv('../../../networks/results/summary.circuits.sim.sortedByAcc_flex.csv', row.names=1)
+> circuits <- rownames(circuit_metrics.sim.sorted)[2:(NO_TOP_CIRCUITS+1)]
+> names(circuits) <- circuits
+> 
+> # Load circuit summary
+> #-------------------- 
+> circuit_metrics <- read.csv(file = '../../../networks/circuits/summary.circuits.csv', row.names = 1)
+> 
+> # select section of the metrics specific to the simulated circuits:
+> #circuit_metrics.sim <- circuit_metrics[!circuit_metrics$DupStatus, ]
+> circuit_metrics.sim <- circuit_metrics[circuits, ]
+> 
+> #names(circuits)
+> length(names(circuits))
+[1] 10
+> fname.list <- list() 
+> for(idx in names(circuits)){
++    #print(idx)
++    fname.list[[idx]] <- paste('../../circuits.sim/circuit_simulated_', idx, '.rds', sep = '')
++ }
+> names(fname.list) <- names(circuits)
+> 
+> # Load cluster cut for reference data:
+> #----------------------------------------
+> tmp <- read.csv(file = paste0('../../../networks/circuits/', 'clusterCut.REF.csv'), row.names = 1)
+> clusterCut.REF <- as.integer(tmp$x)
+> names(clusterCut.REF) <- as.character(rownames(tmp))
+> 
+> # Load TF activities 
+> #--------------------
+> fname.TFactivities <- '../../../networks/circuits/circuit_TFactivities.rds'
+> TF_activities <- readRDS(fname.TFactivities) 
+> 
+> # Calculate accuracy and average distance for 10 samples 
+> # For each sample, calculate these metrics for all circuits
+> #---------------------------------------------------------- 
+> circuit_metrics.sim.list <- list()
+> for(SAMPLE_NO in 1:NO_SAMPLES){
++    sample_name <- paste0('S', SAMPLE_NO) 
++    start.idx <- SAMPLE_SIZE * (SAMPLE_NO-1) + 1
++    end.idx <- SAMPLE_SIZE * SAMPLE_NO
++    # print(start.idx)
++    # print(end.idx) 
++    
++    # Create data structure to save metrics for the current samples:
++    #--------------------------------------------------------------
++    # accuracy.avgDist <- as.data.frame(matrix(nrow = dim(circuit_metrics.sim)[1], ncol = 0) )
++    # accuracy.avgDist$SimIdx <- circuit_metrics.sim$SimIdx
++    # rownames(accuracy.avgDist) <- rownames(circuit_metrics.sim) 
++    
++    accuracy.avgDist <- circuit_metrics.sim 
++    
++    # Calculate metricx (Accuracy and AvgDist) for the current sample:
++    #----------------------------------------------------------------
++    circuit_idx <- names(circuits)[1]
++    for(circuit_idx in names(circuits)){
++       print(circuit_idx)
++       data.REF <-  TF_activities[[circuit_idx]]
++       # obtain simulated data:
++       racipe <- readRDS(file = paste('../../circuits.sim/circuit_simulated_', 
++                                      circuit_idx, '.rds', sep = ''))  
++       racipe <- sracipeNormalize(racipe)  
++       racipe <- racipe[, start.idx:end.idx]  
++       data.sim <- assay(racipe,1)  
++       #data.sim.sub <- data.sim[, start.idx:end.idx] 
++       #break() 
++       
++       # calculate similarity between activitites and racipe simulation data:
++       hS <- sracipeHeatmapSimilarity(dataReference = data.REF,
++                                      dataSimulation = data.sim, 
++                                      returnData = T, 
++                                      #nClusters = NUM_CLUSTERS, 
++                                      clusterCut = clusterCut.REF)
++       
++       accuracy.avgDist[circuit_idx, "ClusterA"] <- hS$simulated.cluster.freq[2] 
++       accuracy.avgDist[circuit_idx, "ClusterB"] <- hS$simulated.cluster.freq[3]
++       accuracy.avgDist[circuit_idx,"KLdist"] <- hS$KL 
++       accuracy.avgDist[circuit_idx,"ClusterA2"] <- hS$cluster.similarity[2] 
++       accuracy.avgDist[circuit_idx,"ClusterB2"] <- hS$cluster.similarity[3]
++       accuracy.avgDist[circuit_idx, "Accuracy"] <- (hS$simulated.cluster.freq[2] + hS$simulated.cluster.freq[3])
++       accuracy.avgDist[circuit_idx, "AvgDist"] <- hS$AvgDist  
++       
++       # calculate circuit flexibility by KD subsetting  
++       racipe.kd <- sRACIPE::sracipeKnockDown(racipe, 
++                                              plotToFile = FALSE,
++                                              plotBarPlot = FALSE, #TRUE,
++                                              plotHeatmap = FALSE,
++                                              reduceProduction = (100-PERCENT_REDUCTION)
++       )
++       flexibility_as_avg.dist <- calDistance(racipe.kd)
++       accuracy.avgDist[circuit_idx, "flexibility"] <- flexibility_as_avg.dist
++ 
++       #break()
++    }
++    circuit_metrics.sim.list[[sample_name]] <- accuracy.avgDist
++    #break()
++ }
+[1] "0.09-32-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-36-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-28-0.55"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.16-28-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-32-0.4"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.06-32-0.25"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-44-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-36-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-28-0.55"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.16-28-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-32-0.4"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.06-32-0.25"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-44-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-36-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-28-0.55"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.16-28-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-32-0.4"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.06-32-0.25"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-44-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-36-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-28-0.55"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.16-28-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-32-0.4"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.06-32-0.25"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-44-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-36-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-28-0.55"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.16-28-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-32-0.4"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.06-32-0.25"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-44-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-36-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-28-0.55"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.16-28-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-32-0.4"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.06-32-0.25"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-44-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-36-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-28-0.55"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.16-28-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-32-0.4"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.06-32-0.25"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-44-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-36-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-28-0.55"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.16-28-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-32-0.4"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.06-32-0.25"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-44-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-36-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-28-0.55"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.16-28-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-32-0.4"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.06-32-0.25"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-44-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-36-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-32-0"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-28-0.55"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.16-28-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.08-32-0.4"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.06-32-0.25"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.07-44-0.85"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+[1] "0.09-32-0.75"
+Calculating the similarity index
+pvalue method
+simulation permutation
+[1] 1
+[1] 2
+> 
+> names(circuit_metrics.sim.list)
+ [1] "S1"  "S2"  "S3"  "S4"  "S5"  "S6"  "S7"  "S8"  "S9"  "S10"
+> saveRDS(circuit_metrics.sim.list, file = paste0(outdir,  './circuit_metrics.sim.list.rds'))
+> 
+> proc.time()
+   user  system elapsed 
+1639.37  200.94 1844.59 

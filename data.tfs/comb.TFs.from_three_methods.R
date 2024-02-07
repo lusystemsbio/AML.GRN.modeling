@@ -1,0 +1,40 @@
+#!/usr/bin/env Rscript
+
+# Combine TOP TFs obtained from all THREE methods
+
+rm(list=ls())
+setwd(getwd())
+
+# TOP TFs (netact) 
+tfs.netact <- read.table(file = './tfs.Netact.txt', header = T) 
+length(tfs.netact$tf)   
+
+# order the data frame by increasing value of z and q values:  
+tfs.netact <- tfs.netact[order(tfs.netact$zq, decreasing = FALSE), ]
+
+# TOP TFs (MARINa)
+tfs.MARINa <- read.csv(file = './TFs.MARINa.csv', header = T)
+# order the data frame by increasing value of FDR 
+tfs.MARINa  <- tfs.MARINa[order(tfs.MARINa$FDR, decreasing = FALSE), ] 
+
+
+# TOP TFs (RI method)
+tfs.RI <- read.csv(file = './TFs.RI.csv', header = T)
+colnames(tfs.RI)  
+# order the data frame by decreasing value of aggregate error:
+tfs.RI <- tfs.RI[order(tfs.RI$aggr.error, decreasing = TRUE), ]
+
+
+# Save TFs from all THREE methods
+#--------------------------------
+TFs.combined <- list()
+TFs.combined[['Netact']] <- tfs.netact
+TFs.combined[['MARINa']] <- tfs.MARINa
+TFs.combined[['RI']] <- tfs.RI 
+
+
+#Save selected total balanced tfs
+#--------------------------------
+fname.tfs.comb <- './TFs.combined.rds' 
+saveRDS(TFs.combined, file = fname.tfs.comb)
+

@@ -1,0 +1,66 @@
+
+R version 3.6.1 (2019-07-05) -- "Action of the Toes"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> # Clean environment and set working direcotry
+> #--------------------------------------------
+> rm(list=ls())
+> setwd(getwd())
+> 
+> # Load library functions
+> #------------------------- 
+> libdir <- '../lib/'
+> #source(paste0(libdir, 'lib.aml.idh.R'))
+> source('./lib.data.tfs.R')
+> 
+> # Load TF list file
+> #------------------- 
+> fname_tfs <- './tfs.CTRL.IDH.csv'
+> tfs.df  <- read.csv(file = fname_tfs)
+> 
+> 
+> # Order TFS with Q val zero by Z.score
+> #=====================================
+> tfs.ordered  <- order.TFs_with_Q0(tfs.df)
+> 
+> # # # Save TFs after ordering
+> # #--------------------------- 
+> # fname_tfs.ordered  <- './tfs.CTRL.IDH.ordered.csv'
+> # write.csv(tfs.ordered, file = fname_tfs.ordered, row.names = FALSE, quote = FALSE)
+> 
+> 
+> #Save balanced TFs
+> #-----------------
+> fname.tfs.balanced <- './tfs.Netact.csv'
+> write.csv(format(tfs.ordered, digits=4), 
++           file = fname.tfs.balanced, 
++           quote = FALSE, row.names = F)
+> 
+> 
+> #Save selected total balanced tfs
+> #---------------------------------
+> fname.tfs <- './tfs.Netact.txt'
+> write.table(format(tfs.ordered, digits=4), 
++             file = fname.tfs, quote = FALSE,
++             row.names = FALSE, sep = '\t') 
+> 
+> proc.time()
+   user  system elapsed 
+  0.451   0.056   0.492 

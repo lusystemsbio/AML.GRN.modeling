@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+date 
+R CMD BATCH eval.netactTFs.R
+R CMD BATCH cal.ACT_EXP.R
+date 
+
+evalTOP.TFs.R

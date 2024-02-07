@@ -1,0 +1,86 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls())  
+> 
+> #source('../../../networks/functions.R')
+> 
+> datadir <- './rankedCircuits.acc.flex/'
+> 
+> circuit_metrics.sim  <- readRDS(file = paste0(datadir,  './circuit_metrics.sim.sorted.rds'))
+> names(circuit_metrics.sim)
+ [1] "S1"  "S2"  "S3"  "S4"  "S5"  "S6"  "S7"  "S8"  "S9"  "S10"
+> 
+> NO_SAMPLES <- length(names(circuit_metrics.sim))
+> 
+> circuit_metrics <- circuit_metrics.sim$S1
+> 
+> metric.comb <- as.data.frame(matrix(nrow = nrow(circuit_metrics), 
++                                     ncol = (length(names(circuit_metrics.sim))+1)))
+> colnames(metric.comb) <- c('Nodes', names(circuit_metrics.sim))
+> 
+> circuit_metrics.ordered <- circuit_metrics[order(circuit_metrics$SimIdx), ] 
+> rownames(metric.comb) <- rownames(circuit_metrics.ordered)
+> metric.comb$Nodes <- circuit_metrics.ordered$Nodes
+> metric.comb$S1 <- circuit_metrics.ordered$idxAccuracy
+> 
+> for(sample_name in names(circuit_metrics.sim)[2:NO_SAMPLES]){  
++    print(sample_name)
++    circuit_metrics <- circuit_metrics.sim[[sample_name]] 
++    circuit_metrics.ordered <- circuit_metrics[order(circuit_metrics$SimIdx), ] 
++    
++    metric.comb[,sample_name] <- circuit_metrics.ordered$idxAccuracy
++ }
+[1] "S2"
+[1] "S3"
+[1] "S4"
+[1] "S5"
+[1] "S6"
+[1] "S7"
+[1] "S8"
+[1] "S9"
+[1] "S10"
+> 
+> class(metric.comb$S1)
+[1] "integer"
+> 
+> avg.samples <- apply(metric.comb[2:ncol(metric.comb)], 1, mean)
+> sd.samples <- apply(metric.comb[2:ncol(metric.comb)], 1, sd)
+> length(avg.samples)
+[1] 10
+> length(sd.samples)
+[1] 10
+> 
+> metric.comb$mean <- avg.samples
+> metric.comb$sd <- sd.samples
+> 
+> metric.comb.sorted <- metric.comb[order(metric.comb$mean),]
+> 
+> cat(head(rownames(metric.comb.sorted)))
+0.07-32-0 0.07-32-0.75 0.06-32-0.25 0.08-28-0.55 0.08-32-0.4 0.09-32-0.75> 
+> write.csv(format(metric.comb.sorted, digits=3), file = paste0(datadir, 'metric.idxAcc.sorted.csv'), 
++           row.names = T, quote = F)
+> 
+> proc.time()
+   user  system elapsed 
+  0.198   0.048   0.245 
