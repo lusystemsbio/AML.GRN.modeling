@@ -1,0 +1,62 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> remove(list = ls()) 
+> 
+> # load accuracies - para all
+> fname <-'./results/accuracy.all.csv'
+> accuracy.all.df <- read.csv(file = fname, row.names = 1)
+> dim(accuracy.all.df)
+[1]  532 1000
+> 
+> 
+> mean.sd.df <- NULL
+> mean.sd.df$mean <- apply(accuracy.all.df, 1, mean)
+> mean.sd.df$sd <- apply(accuracy.all.df, 1, sd)
+> 
+> mean.sd <- cbind(apply(accuracy.all.df, 1, mean), apply(accuracy.all.df, 1, sd))
+> colnames(mean.sd) <- c('mean', 'sd')
+> 
+> figdir <- './figs/'
+> dir.create(figdir)
+Warning message:
+In dir.create(figdir) : './figs' already exists
+> WIDTH <- 8
+> HEIGHT <- 8
+> figname <- paste(figdir, 'accuracies-mean.sd-', WIDTH, 'x', HEIGHT,'.pdf', sep = '') 
+> pdf(file = figname, width = WIDTH, height = HEIGHT, paper = 'special')
+> 
+> par(mfcol = c(2, 1)) 
+> par(oma=c(3,1,3,3)) # b, l, t, r - all sides have 3 lines of space - outer margin
+> par(mar=c(1,4,1,1) + 0.1) # b, l, t, r - inner margin
+> plot(mean.sd[,'mean'], ylab = 'mean (accuracy)' )
+> plot(mean.sd[,'sd'], ylab='sd (accuracy)') 
+> dev.off()
+null device 
+          1 
+> 
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  0.573   0.065   0.629 

@@ -1,0 +1,172 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> remove(list = ls()) 
+> 
+> NO.TOP.CIRCUITS <- 10
+> 
+> # Load circuit summary
+> #-------------------- 
+> datadir <- '../../rankings.allCircuits/results/'
+> circuit_metrics.sim <- read.csv(file = paste0(datadir , "./summary.circuits.sim.sortedByAcc_flex.csv"), row.names = 1)
+> circuit_metrics.sim <- circuit_metrics.sim[1:NO.TOP.CIRCUITS, ]
+> 
+> # load accuracies - para 2
+> fname <-'../para.2/results/accuracy.all.csv'
+> accuracy.2.df <- read.csv(file = fname, row.names = 1)
+> dim(accuracy.2.df)
+[1]   10 1000
+> 
+> # load accuracies - para 3
+> fname <-'../para.3/results/accuracy.all.csv'
+> accuracy.3.df <- read.csv(file = fname, row.names = 1)
+> dim(accuracy.3.df)
+[1]   10 1000
+> 
+> 
+> # load accuracies - para 4
+> fname <-'../para.4/results/accuracy.all.csv'
+> accuracy.4.df <- read.csv(file = fname, row.names = 1)
+> dim(accuracy.4.df)
+[1]   10 1000
+> 
+> # load accuracies - para all
+> fname <-'./results/accuracy.all.csv'
+> accuracy.all.df <- read.csv(file = fname, row.names = 1)
+> dim(accuracy.all.df)
+[1]  532 1000
+> 
+> 
+> figdir <- './figs/'
+> dir.create(figdir)
+Warning message:
+In dir.create(figdir) : './figs' already exists
+> WIDTH <- 12 #8 #6 
+> HEIGHT <- 8 #12
+> figname <- paste(figdir, 'hist.accuracies-', WIDTH, 'x', HEIGHT,'-top1-5-3runs.pdf', sep = '') 
+> pdf(file = figname, width = WIDTH, height = HEIGHT, paper = 'special')
+> #par(mfrow = c(5, 2))   
+> par(mfcol = c(4, 5)) 
+> par(oma=c(3,3,3,3)) # b, l, t, r - all sides have 3 lines of space - outer margin
+> par(mar=c(1,1,4,1) + 0.1) # b, l, t, r - inner margin
+> 
+> #xlimit <- c((min(accuracy.4.df)-0.01), c(max(accuracy.4.df)+0.01))
+> xlimit <- c(0.90, 0.96)
+> 
+> for(idx in rownames(accuracy.4.df)[1:5]){
++   print(idx)
++  
++   # para 2
++   main.str <- paste(idx, ':', circuit_metrics.sim[idx, "Nodes"], sep = '')
++   hist(unlist(accuracy.2.df[idx,]), breaks = 50, main = main.str, xlim = xlimit) 
++   abline(v = mean(unlist(accuracy.2.df[idx,])), col="red", lwd=2, lty=1)
++   abline(v = circuit_metrics.sim[idx, "Accuracy"], col="red", lwd=2, lty=2)
++ 
++   # para 3
++   main.str <- paste(idx, ':', circuit_metrics.sim[idx, "Nodes"], sep = '')
++   hist(unlist(accuracy.3.df[idx,]), breaks = 50, main = main.str, xlim = xlimit) 
++   abline(v = mean(unlist(accuracy.3.df[idx,])), col="red", lwd=2, lty=1)
++   abline(v = circuit_metrics.sim[idx, "Accuracy"], col="red", lwd=2, lty=2)
++   
++   # para 4
++   main.str <- paste(idx, ':', circuit_metrics.sim[idx, "Nodes"], sep = '')
++   hist(unlist(accuracy.4.df[idx,]), breaks = 50, main = main.str, xlim = xlimit) 
++   abline(v = mean(unlist(accuracy.4.df[idx,])), col="red", lwd=2, lty=1)
++   abline(v = circuit_metrics.sim[idx, "Accuracy"], col="red", lwd=2, lty=2)
++   
++   
++   # para all
++   main.str <- paste(idx, ':', circuit_metrics.sim[idx, "Nodes"], sep = '')
++   hist(unlist(accuracy.all.df[idx,]), breaks = 50, main = main.str, xlim = xlimit) 
++   abline(v = mean(unlist(accuracy.all.df[idx,])), col="red", lwd=2, lty=1)
++   abline(v = circuit_metrics.sim[idx, "Accuracy"], col="red", lwd=2, lty=2)
++   
++   #break()
++ }
+[1] "0.09-32-0.85"
+[1] "0.07-36-0.85"
+[1] "0.07-32-0.75"
+[1] "0.07-32-0"
+[1] "0.08-28-0.55"
+> dev.off()
+null device 
+          1 
+> 
+> 
+> figdir <- './figs/'
+> dir.create(figdir)
+Warning message:
+In dir.create(figdir) : './figs' already exists
+> WIDTH <- 12 #8 #6 
+> HEIGHT <- 8 #12
+> figname <- paste(figdir, 'hist.accuracies-', WIDTH, 'x', HEIGHT,'-top6-10-3runs.pdf', sep = '') 
+> pdf(file = figname, width = WIDTH, height = HEIGHT, paper = 'special')
+> #par(mfrow = c(5, 2))   
+> par(mfcol = c(4, 5)) 
+> par(oma=c(3,3,3,3)) # b, l, t, r - all sides have 3 lines of space - outer margin
+> par(mar=c(1,1,4,1) + 0.1) # b, l, t, r - inner margin
+> 
+> #xlimit <- c((min(accuracy.4.df)-0.01), c(max(accuracy.4.df)+0.01))
+> xlimit <- c(0.90, 0.96)
+> 
+> for(idx in rownames(accuracy.4.df)[6:10]){
++   print(idx)
++   
++   # para 2
++   main.str <- paste(idx, ':', circuit_metrics.sim[idx, "Nodes"], sep = '')
++   hist(unlist(accuracy.2.df[idx,]), breaks = 50, main = main.str, xlim = xlimit) 
++   abline(v = mean(unlist(accuracy.2.df[idx,])), col="red", lwd=2, lty=1)
++   abline(v = circuit_metrics.sim[idx, "Accuracy"], col="red", lwd=2, lty=2)
++   
++   # para 3
++   main.str <- paste(idx, ':', circuit_metrics.sim[idx, "Nodes"], sep = '')
++   hist(unlist(accuracy.3.df[idx,]), breaks = 50, main = main.str, xlim = xlimit) 
++   abline(v = mean(unlist(accuracy.3.df[idx,])), col="red", lwd=2, lty=1)
++   abline(v = circuit_metrics.sim[idx, "Accuracy"], col="red", lwd=2, lty=2)
++   
++   # para 4
++   main.str <- paste(idx, ':', circuit_metrics.sim[idx, "Nodes"], sep = '')
++   hist(unlist(accuracy.4.df[idx,]), breaks = 50, main = main.str, xlim = xlimit) 
++   abline(v = mean(unlist(accuracy.4.df[idx,])), col="red", lwd=2, lty=1)
++   abline(v = circuit_metrics.sim[idx, "Accuracy"], col="red", lwd=2, lty=2)
++   
++   # para all
++   main.str <- paste(idx, ':', circuit_metrics.sim[idx, "Nodes"], sep = '')
++   hist(unlist(accuracy.all.df[idx,]), breaks = 50, main = main.str, xlim = xlimit) 
++   abline(v = mean(unlist(accuracy.all.df[idx,])), col="red", lwd=2, lty=1)
++   abline(v = circuit_metrics.sim[idx, "Accuracy"], col="red", lwd=2, lty=2)
++   
++   #break()
++ }
+[1] "0.16-28-0.85"
+[1] "0.08-32-0.4"
+[1] "0.06-32-0.25"
+[1] "0.07-44-0.85"
+[1] "0.09-32-0.75"
+> dev.off()
+null device 
+          1 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  1.282   0.067   1.347 

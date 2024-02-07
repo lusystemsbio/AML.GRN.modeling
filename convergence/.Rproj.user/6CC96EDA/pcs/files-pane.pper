@@ -1,0 +1,13 @@
+{
+    "path" : "~/research/aml.idh/phase.46/convergence.acc.flex",
+    "sortOrder" : [
+        {
+            "ascending" : false,
+            "columnIndex" : 3
+        },
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}
