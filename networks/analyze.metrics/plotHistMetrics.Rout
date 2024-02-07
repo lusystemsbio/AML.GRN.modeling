@@ -1,0 +1,488 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> 
+> MINIMUM.CIRCUIT.SIZE <- 15
+> 
+> # Resources: 
+> # 1. http://r-statistics.co/Linear-Regression.html 
+> circuit_metrics.sim <- read.csv(file = '../results/summary.circuits.sim.sortedByAcc_flex.csv', row.names = 1)
+> circuit_metrics.sim <- circuit_metrics.sim[circuit_metrics.sim$Nodes>=MINIMUM.CIRCUIT.SIZE, ]
+> 
+> dim(circuit_metrics.sim)
+[1] 532  25
+> colnames(circuit_metrics.sim)
+ [1] "FeatureRatio"     "TopTFs"           "AbsCor"           "Nodes"           
+ [5] "Interactions"     "PosInt"           "Connected"        "Transitivity"    
+ [9] "MeanDistance"     "DupStatus"        "SimIdx"           "ClusterA"        
+[13] "ClusterB"         "Accuracy"         "KLdist"           "ClusterA2"       
+[17] "ClusterB2"        "AvgDist"          "flexibility"      "maxSigval.Netact"
+[21] "maxSigval.MARINa" "minSigval.RI"     "idxAccuracy"      "idxFlexibility"  
+[25] "idxBoth"         
+> 
+> max(circuit_metrics.sim$Nodes) 
+[1] 119
+> 
+> library(sRACIPE)
+Loading required package: SummarizedExperiment
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+Loading required package: DelayedArray
+Loading required package: matrixStats
+
+Attaching package: ‘matrixStats’
+
+The following objects are masked from ‘package:Biobase’:
+
+    anyMissing, rowMedians
+
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges
+
+The following objects are masked from ‘package:base’:
+
+    aperm, apply, rowsum
+
+Loading required package: Rcpp
+> library(NetAct)
+> source('../heatmapSimilarity.updated.R')
+> source('../functions.R')
+> library(gplots)
+
+Attaching package: ‘gplots’
+
+The following object is masked from ‘package:IRanges’:
+
+    space
+
+The following object is masked from ‘package:S4Vectors’:
+
+    space
+
+The following object is masked from ‘package:stats’:
+
+    lowess
+
+> 
+> plot(circuit_metrics.sim$Nodes, circuit_metrics.sim$Accuracy, 
++      xlab='Nodes', ylab='Accuracy')
+> plot(circuit_metrics.sim$AbsCor, circuit_metrics.sim$Accuracy, 
++      xlab='Abs Corr', ylab='Accuracy') 
+> 
+> cor(circuit_metrics.sim$TopTFs, circuit_metrics.sim$Nodes)
+[1] 0.8431014
+> 
+> 
+> # Constants 
+> #------------
+> CEX.MAIN <- 1.5
+> CEX.LAB <- 1.5
+> CEX.AXIS <- 1.5
+> 
+> # input directory for hS objects obtained from cal.metrics.sim_circuits.R
+> hS.dir <- '../circuits.hS/' 
+> 
+> outdir <- './figs.hist/'
+> dir.create(outdir)
+Warning message:
+In dir.create(outdir) : './figs.hist' already exists
+> 
+> # Correlation values between Accuracy, AvgDist and KL distance in the sorted data
+> #--------------------------------------------------------------------------------
+> cor(circuit_metrics.sim$AvgDist, circuit_metrics.sim$Accuracy) 
+[1] -0.9588404
+> cor(circuit_metrics.sim$AvgDist, circuit_metrics.sim$KLdist)
+[1] 0.9623801
+> cor(circuit_metrics.sim$Accuracy, circuit_metrics.sim$KLdist)
+[1] -0.953175
+> 
+> cor(circuit_metrics.sim$Accuracy, circuit_metrics.sim$flexibility)
+[1] -0.7586965
+> cor(circuit_metrics.sim$AvgDist, circuit_metrics.sim$flexibility)
+[1] 0.8141739
+> cor(circuit_metrics.sim$KLdist, circuit_metrics.sim$flexibility)
+[1] 0.7148426
+> 
+> cor(circuit_metrics.sim$TopTFs, circuit_metrics.sim$Nodes)
+[1] 0.8431014
+> 
+> # Comparing Accuracy, AvgDist and KL distance in the sorted data
+> #---------------------------------------------------------------
+> # fname_fig <- paste0(outdir, 'average_distance.after_sorting.pdf')
+> # pdf(file=fname_fig, width=6, height=8, paper = "special", onefile = TRUE)
+> # par(mfrow=c(3,1))
+> # par(mar=c(2.0, 5.5, 1.5, 2)) # bottom, left, top, right 
+> # plot(circuit_metrics.sim$idxBoth, circuit_metrics.sim$Accuracy, xaxt="n", ylab='', cex.axis=CEX.AXIS)
+> # title(ylab='Accuracy', cex.lab=CEX.LAB)
+> # plot(circuit_metrics.sim$idxBoth, circuit_metrics.sim$AvgDist, xaxt="n", ylab='', cex.axis=CEX.AXIS)
+> # title(ylab='Average distance', cex.lab=CEX.LAB)
+> # par(mar=c(5.0, 5.5, 1.5, 2))
+> # plot(circuit_metrics.sim$idxBoth, circuit_metrics.sim$KLdist, xlab='', ylab='', cex.axis=CEX.AXIS)
+> # title(xlab='Sort index (combined)', ylab='KL distance', cex.lab=CEX.LAB)
+> # dev.off()
+> 
+> # Histograms for the normalized metrics 
+> #--------------------------------------
+> # normalize THREE metricx
+> #-------------------------
+> avg.distance.normed <- (circuit_metrics.sim$AvgDist - min(circuit_metrics.sim$AvgDist))/(max(circuit_metrics.sim$AvgDist)-min(circuit_metrics.sim$AvgDist))
+> accuracy.normed <- (circuit_metrics.sim$Accuracy - min(circuit_metrics.sim$Accuracy))/(max(circuit_metrics.sim$Accuracy)-min(circuit_metrics.sim$Accuracy))
+> KLdistance.normed <- (circuit_metrics.sim$KLdist-min(circuit_metrics.sim$KLdist))/(max(circuit_metrics.sim$KLdist)-min(circuit_metrics.sim$KLdist))
+> 
+> BREAKS <- 60
+> par(mfrow=c(3,1))
+> par(mar=c(2.0, 5.5, 1.5, 2)) # bottom, left, top, right
+> h1 <- hist(accuracy.normed, breaks = BREAKS, main = 'Accuracy')
+> h2 <- hist(avg.distance.normed, breaks = BREAKS, main = 'Average distance')
+> h3 <- hist(KLdistance.normed, breaks = BREAKS, main = 'KL distance')
+> 
+> XLIMIT <- c(0, 1)
+> fname_fig <- paste0(outdir, 'histogram-metrics.pdf')
+> pdf(file=fname_fig, width=6, height=8, paper = "special", onefile = TRUE)
+> par(mfrow=c(3,1))
+> par(mar=c(3.0, 5.5, 1.5, 2)) # bottom, left, top, right
+> 
+> plot(h1, xlim=XLIMIT, ylim=c(0, 25), cex.axis=CEX.AXIS, main='', ylab='')
+> title(main = 'Accuracy', cex.main=CEX.MAIN, ylab='Frequency', cex.lab=CEX.LAB)
+> 
+> plot(h2, xlim=XLIMIT, main = '', cex.axis=CEX.AXIS, ylab='')
+> title(main = 'Average distance', cex.main=CEX.MAIN, ylab='Frequency', cex.lab=CEX.LAB)
+> 
+> plot(h3, xlim=XLIMIT, ylim=c(0, 140),main = '', cex.axis=CEX.AXIS, ylab='')
+> title(main = 'KL distance', cex.main=CEX.MAIN, ylab='Frequency', cex.lab=CEX.LAB)
+> dev.off()
+pdf 
+  2 
+> 
+> 
+> # Histograms of circuit construction parameters 
+> # feature ratio cutoff, correlation cutoff, number of nodes
+> #---------------------------------------------------------- 
+> BREAKS <- 60 
+> par(mfrow=c(3,1))
+> par(mar=c(2.0, 5.5, 1.5, 2)) # bottom, left, top, right 
+> h1 <- hist(circuit_metrics.sim$FeatureRatio, breaks = BREAKS, main = 'Feature ratio cutoff') 
+> h2 <- hist(circuit_metrics.sim$AbsCor, breaks = BREAKS, main = 'Correlation cutoff') 
+> h3 <- hist(circuit_metrics.sim$Nodes, breaks = BREAKS, main = 'Number of nodes') 
+> #hist(circuit_metrics.sim$Nodes, breaks = 20, main = 'Number of nodes') 
+> 
+> fname_fig <- paste0(outdir, 'histogram-parameters.pdf')
+> pdf(file=fname_fig, width=6, height=8, paper = "special", onefile = TRUE) 
+> par(mfrow=c(3,1))
+> par(mar=c(3.0, 5.5, 1.5, 2)) # bottom, left, top, right 
+> 
+> plot(h1, xlim=c(0.05, 0.2), ylim=c(0, 65) ,cex.axis=CEX.AXIS, main='', ylab='')
+> title(main = 'Feature ratio cutoff', cex.main=CEX.MAIN, ylab='Frequency', cex.lab=CEX.LAB) 
+> 
+> plot(h2, xlim = c(0, 1), ylim = c(0, 120) , main = '', cex.axis=CEX.AXIS, ylab='') 
+> title(main = 'Correlation cutoff', cex.main=CEX.MAIN, ylab='Frequency', cex.lab=CEX.LAB)
+> 
+> plot(h3, xlim = c(0, 135), ylim = c(0, 18), main = '', cex.axis=CEX.AXIS, ylab='')
+> title(main = 'Number of nodes', cex.main=CEX.MAIN, ylab='Frequency', cex.lab=CEX.LAB)
+> dev.off()
+pdf 
+  2 
+> 
+> min(circuit_metrics.sim$Nodes)
+[1] 15
+> sum(circuit_metrics.sim$Nodes<=5)
+[1] 0
+> 
+> # Plot circuit construction parameters vs average distance
+> # feature ratio cutoff, correlation cutoff, number of nodes
+> #---------------------------------------------------------- 
+> fname_fig <- paste0(outdir, 'parameters-vs-average.dist.pdf')
+> pdf(file=fname_fig, width=6, height=8, paper = "special", onefile = TRUE) 
+> par(mfrow=c(3,1))
+> par(mar=c(5.0, 5.5, 1.5, 2)) # bottom, left, top, right 
+> 
+> plot(circuit_metrics.sim$FeatureRatio, circuit_metrics.sim$AvgDist, 
++      main='', xlab='', ylab='',
++      xlim=c(0.05, 0.2), ylim=c(0, 0.10), 
++      cex.axis=CEX.AXIS)
+> title(xlab = 'Feature ratio cutoff', ylab='Average distance', cex.lab=CEX.LAB) 
+> 
+> plot(circuit_metrics.sim$Nodes, circuit_metrics.sim$AvgDist, 
++      main='', xlab='', ylab='',
++      xlim = c(0, 60), ylim = c(0, 0.10),
++      cex.axis=CEX.AXIS)
+> title(xlab = 'Number of nodes', ylab='Average distance', cex.lab=CEX.LAB)
+> 
+> plot(circuit_metrics.sim$AbsCor, circuit_metrics.sim$AvgDist, 
++      main='', xlab='', ylab='',
++      xlim = c(0, 1.0), ylim = c(0, 0.10),
++      cex.axis=CEX.AXIS)
+> title(xlab = 'Correlation cutoff', ylab='Average distance', cex.lab=CEX.LAB)
+> dev.off()
+pdf 
+  2 
+> 
+> 
+> # Parameters vs metrics 
+> #======================
+> #Feature ratio
+> fname_fig <- paste0(outdir, 'featureRatio-vs-metrics.pdf')
+> pdf(file=fname_fig, width=6, height=8, paper = "special", onefile = TRUE) 
+> par(mfrow=c(3,1))
+> par(mar=c(5.0, 5.5, 1.5, 2)) # bottom, left, top, right 
+> 
+> plot(circuit_metrics.sim$FeatureRatio, circuit_metrics.sim$Accuracy, 
++      main='', xlab='', ylab='',
++      xlim=c(0.05, 0.2), #ylim=c(0, 0.10), 
++      cex.axis=CEX.AXIS)
+> title(#xlab = 'Feature ratio cutoff', 
++       ylab='Accuracy', cex.lab=CEX.LAB) 
+> 
+> plot(circuit_metrics.sim$FeatureRatio, circuit_metrics.sim$AvgDist, 
++      main='', xlab='', ylab='',
++      xlim=c(0.05, 0.2), #ylim = c(0, 0.10),
++      cex.axis=CEX.AXIS)
+> title(#xlab = 'Feature ratio cutoff', 
++       ylab='Average distance', cex.lab=CEX.LAB)
+> 
+> plot(circuit_metrics.sim$FeatureRatio, circuit_metrics.sim$flexibility, 
++      main='', xlab='', ylab='',
++      xlim=c(0.05, 0.2), #ylim = c(0, 0.10),
++      cex.axis=CEX.AXIS)
+> title(xlab = 'Feature ratio cutoff', ylab='Flexibility', 
++       cex.lab=CEX.LAB)
+> dev.off()
+pdf 
+  2 
+> 
+> 
+> #Number of TFs
+> fname_fig <- paste0(outdir, 'TopTFs-vs-metrics.pdf')
+> pdf(file=fname_fig, width=6, height=8, paper = "special", onefile = TRUE) 
+> par(mfrow=c(3,1))
+> par(mar=c(5.0, 5.5, 1.5, 2)) # bottom, left, top, right 
+> 
+> plot(circuit_metrics.sim$TopTFs, circuit_metrics.sim$Accuracy, 
++      main='', xlab='', ylab='',
++      xlim=c(4, 32), 
++      #ylim=c(0, 0.10), 
++      cex.axis=CEX.AXIS)
+> title(#xlab = 'Feature ratio cutoff', 
++   ylab='Accuracy', cex.lab=CEX.LAB) 
+> 
+> plot(circuit_metrics.sim$TopTFs, circuit_metrics.sim$AvgDist, 
++      main='', xlab='', ylab='',
++      xlim=c(4, 32), #ylim = c(0, 0.10),
++      cex.axis=CEX.AXIS)
+> title(#xlab = 'Feature ratio cutoff', 
++   ylab='Average distance', cex.lab=CEX.LAB)
+> 
+> plot(circuit_metrics.sim$TopTFs, circuit_metrics.sim$flexibility, 
++      main='', xlab='', ylab='',
++      xlim=c(4, 32), #ylim = c(0, 0.10),
++      cex.axis=CEX.AXIS)
+> title(xlab = 'Top TFs', ylab='Flexibility', 
++       cex.lab=CEX.LAB)
+> dev.off()
+pdf 
+  2 
+> 
+> # Corr cut off
+> fname_fig <- paste0(outdir, 'AbsCorr-vs-metrics.pdf')
+> pdf(file=fname_fig, width=6, height=8, paper = "special", onefile = TRUE) 
+> par(mfrow=c(3,1))
+> par(mar=c(5.0, 5.5, 1.5, 2)) # bottom, left, top, right 
+> 
+> plot(circuit_metrics.sim$AbsCor, circuit_metrics.sim$Accuracy, 
++      main='', xlab='', ylab='',
++      xlim = c(0, 1.0), 
++      #ylim=c(0, 0.10), 
++      cex.axis=CEX.AXIS)
+> title(#xlab = 'Feature ratio cutoff', 
++   ylab='Accuracy', cex.lab=CEX.LAB) 
+> 
+> plot(circuit_metrics.sim$AbsCor, circuit_metrics.sim$AvgDist, 
++      main='', xlab='', ylab='',
++      xlim = c(0, 1.0), #ylim = c(0, 0.10),
++      cex.axis=CEX.AXIS)
+> title(#xlab = 'Feature ratio cutoff', 
++   ylab='Average distance', cex.lab=CEX.LAB)
+> 
+> plot(circuit_metrics.sim$AbsCor, circuit_metrics.sim$flexibility, 
++      main='', xlab='', ylab='',
++      xlim = c(0, 1.0), #ylim = c(0, 0.10),
++      cex.axis=CEX.AXIS)
+> title(xlab = 'Abs Correlation', ylab='Flexibility', 
++       cex.lab=CEX.LAB)
+> dev.off()
+pdf 
+  2 
+> 
+> unique(sort(circuit_metrics.sim$FeatureRatio))
+ [1] 0.05 0.06 0.07 0.08 0.09 0.10 0.12 0.14 0.16 0.18 0.20
+> unique(sort(circuit_metrics.sim$TopTFs))
+ [1] 12 16 20 24 28 32 36 40 44 48 52 56 60
+> 
+> # Select top circuits 
+> #====================
+> circuits.sele <- circuit_metrics.sim[circuit_metrics.sim$idxBoth<=155, ]  
+> dim(circuits.sele) # 5 circuits 
+[1]  6 25
+> 
+> # select a subset of columns:
+> circuits.subset <- circuits.sele[, c("TopTFs", "FeatureRatio", "AbsCor", 
++                                      "Nodes", "Interactions", "PosInt", 
++                                      "Accuracy", "KLdist", "AvgDist")] 
+> 
+> dim(circuits.subset)
+[1] 6 9
+> write.csv(circuits.subset, file = paste0(outdir, 'top.circuits.csv'), row.names = T, quote = F)
+> 
+> # load sRACIPE object for the selected circuits:
+> racipe.list <- list()
+> for(circuit_idx in rownames(circuits.subset)){
++    print(circuit_idx) 
++    racipe.list[[circuit_idx]] <- readRDS(file = paste('../circuits.sim/circuit_simulated_', 
++                                   circuit_idx, '.rds', sep = '') ) 
++    #break()
++ }
+[1] "0.09-32-0.85"
+[1] "0.07-36-0.85"
+[1] "0.07-32-0.75"
+[1] "0.07-32-0"
+[1] "0.08-28-0.55"
+[1] "0.16-28-0.85"
+> 
+> length(names(racipe.list))
+[1] 6
+> 
+> 
+> # Find all the genes in all the selected circuits
+> #------------------------------------------------
+> nodes.list <- list()
+> for(circuit_idx in names(racipe.list)){ 
++    racipe <- racipe.list[[circuit_idx]]
++    nodes.list[[circuit_idx]] <- rownames(racipe) 
++ }
+> 
+> names(nodes.list)
+[1] "0.09-32-0.85" "0.07-36-0.85" "0.07-32-0.75" "0.07-32-0"    "0.08-28-0.55"
+[6] "0.16-28-0.85"
+> nodes.all <- unlist(nodes.list)
+> length(unique(nodes.all)) # 51
+[1] 61
+> 
+> 
+> # Explore one selected circuit
+> #------------------------------
+> names(racipe.list)
+[1] "0.09-32-0.85" "0.07-36-0.85" "0.07-32-0.75" "0.07-32-0"    "0.08-28-0.55"
+[6] "0.16-28-0.85"
+> circuit_idx <- names(racipe.list)[1]  
+> 
+> # import simulated object:
+> racipe <- racipe.list[[circuit_idx]]
+> 
+> # plot circuit:
+> sRACIPE::sracipePlotCircuit(racipe, plotToFile = F)
+> 
+> # plot simulation data: 
+> sRACIPE::sracipePlotData(racipe, plotToFile = F) 
+class: RacipeSE 
+dim: 29 10000 
+metadata(7): config annotation ... pca assignedClusters
+assays(1): deterministic
+rownames(29): ATM DNMT1 ... EBF1 CTBP1
+rowData names(29): ATM DNMT1 ... EBF1 CTBP1
+colnames: NULL
+colData names(393): G_ATM G_DNMT1 ... EBF1 CTBP1
+> 
+> # 
+> fname.hS <- paste(hS.dir, 'hS_', circuit_idx, '.rds', sep = '')
+> fname.hS
+[1] "../circuits.hS/hS_0.09-32-0.85.rds"
+> hS <- readRDS(file = fname.hS)
+> hS$AvgDist
+[1] 0.008929817
+> hS$simulated.cluster.freq[2] + hS$simulated.cluster.freq[3]
+     1 
+0.9358 
+> hS$KL
+[1] 0.1636634
+> 
+> # plot reference data:
+> heatmap.2(hS$dataReference, trace = 'none') 
+> 
+> # plot simulated.refCor 
+> # hS$simulated.refCor: pearson correlation between data.REF and data.sim 
+> simulated.refCor <- hS$simulated.refCor
+> dim(simulated.refCor)
+[1] 10000    20
+> 
+> graphics::image(hS$simulated.refCor)
+> #graphics::image(t(hS$simulated.refCor))
+> 
+> proc.time()
+   user  system elapsed 
+ 79.362   4.876  85.342 

@@ -1,0 +1,138 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls())
+> cluster_names <- c('CL0', 'CL1', 'CL2', 'CL3')
+> names(cluster_names) <- c('Uncertain', 'AML', 'Hybrid', 'Untreated')
+> 
+> outdir  <- './data/'
+> dir.create(outdir )
+Warning message:
+In dir.create(outdir) : './data' already exists
+> figdir <- './figs.props/'
+> dir.create(figdir)
+Warning message:
+In dir.create(figdir) : './figs.props' already exists
+> 
+> # Load cluser proportions for single and double knockdown 
+> #------------------------------------------------------- 
+> fname.in <- '../../skd/classify.kdmodels/features.topPCs.tsh.0.25/data/cluster_props.csv'
+> cluster_props.skd <-read.csv(file = fname.in, row.names = 1) 
+> 
+> fname.in <- '../../dkd/classify.kdmodels/features.topPCs.tsh.0.25/data/cluster_props.csv' 
+> cluster_props.dkd <-read.csv(file = fname.in, row.names = 1) 
+> 
+> # Combine both single and double knockdown cluster props  
+> #------------------------------------------------------- 
+> # there is one entry for WT in each dataset. drop one from dkd:
+> cluster_props.dkd.new <-  cluster_props.dkd[!rownames(cluster_props.dkd) %in% c("Untreated"),] 
+> 
+> cluster_props <- rbind(cluster_props.skd, cluster_props.dkd.new)
+> rm(cluster_props.skd, cluster_props.dkd, cluster_props.dkd.new)
+> 
+> # Convert the cluster props to percent 
+> #------------------------------------------- 
+> cluster_props <- cluster_props/100
+> 
+> # Sort the models by AML proportions (CL 1)
+> #------------------------------------------- 
+> cluster_props.sorted <- cluster_props[order(cluster_props[,2], decreasing = F), ]
+> 
+> # Change column names to phenotypes
+> #----------------------------------
+> colnames(cluster_props.sorted) <- names(cluster_names)
+> 
+> # Save data
+> #-------------
+> fname.out <- paste(outdir , 'cluster_props.sorted.csv', sep = '')
+> write.csv(cluster_props.sorted, file = fname.out, quote = F) 
+> 
+> # Plot using ggplot
+> #================== 
+> # melt data
+> df <- as.data.frame(cbind(rownames(cluster_props.sorted),
++                           cluster_props.sorted))
+> 
+> colnames(df) <- c('TF', colnames(cluster_props.sorted))
+> 
+> library(reshape2)
+> df2 <- melt(df, id=c('TF')) 
+> colnames(df2) <- c('TF', 'Cluster', 'prop')
+> 
+> df2$TF <- factor(df2$TF, levels = as.character(df$TF))
+> 
+> library(ggplot2)
+> p1 <- ggplot(df2, aes(x=TF, y=prop, fill=Cluster)) + 
++    geom_bar(stat="identity")  + 
++    coord_flip() +
++    scale_fill_manual(values=c("black", "red", "dodgerblue", "orange")) + 
++    labs(x='Transcription Factor or Transcription Factor Pair', y='Percent Models') 
+> 
+> p1
+> 
+> WIDTH <- 4 #6 
+> HEIGHT <- 8 #12 
+> figname <- paste(figdir, 'cluster_props-with_errors-', WIDTH, 'x', HEIGHT, '.pdf', sep = '')
+> ggsave(figname, device = 'pdf', width = WIDTH, height = HEIGHT )
+> 
+> WIDTH <- 8 
+> HEIGHT <- 8 #12 
+> figname <- paste(figdir, 'cluster_props-with_errors-', WIDTH, 'x', HEIGHT, '.pdf', sep = '')
+> ggsave(figname, device = 'pdf', width = WIDTH, height = HEIGHT )
+> 
+> 
+> 
+> # Plot error in nnet predition or uncertainty level
+> #--------------------------------------------------
+> df2 <- as.data.frame(cbind(rownames(cluster_props.sorted), cluster_props.sorted$Uncertain)) 
+> colnames(df2) <- c('tfpair', 'Uncertainty')
+> 
+> df2$tfpair <- factor(df2$tfpair, levels = as.character(df2$tfpair))
+> df2$Uncertainty <- as.numeric(as.character(df2$Uncertainty)) 
+> 
+> p1 <- ggplot(df2, aes(x=tfpair, y=Uncertainty)) + 
++    geom_bar(stat="identity")  +  
++    coord_flip() +
++    labs(x='Transcription Factor or Transcription Factor Pair',
++         y='Percent Models (Uncertain)') + 
++    ylim(c(0, 2.50)) 
+> 
+> p1
+> SIZE.TICK_LABEL <- 12
+> p2 <- p1 + theme(text = element_text(size=SIZE.TICK_LABEL), 
++                  axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)#, 
++                  #axis.title.x = element_blank(), axis.title.y = element_blank()
++             )
+> p2
+> 
+> 
+> WIDTH <- 4
+> HEIGHT <- 8 #12
+> figname <- paste(figdir, 'barplot_for_errors-', WIDTH, 'x', HEIGHT, '.pdf', sep = '')
+> ggsave(figname, device = 'pdf', width = WIDTH, height = HEIGHT ) 
+> 
+> remove(list = ls()) 
+> 
+> proc.time()
+   user  system elapsed 
+  1.614   0.091   1.707 

@@ -1,0 +1,52 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> 
+> circuit_tpo <- read.table('./circuit.tpo', header=T)
+> class(circuit_tpo)
+[1] "data.frame"
+> head(circuit_tpo)
+  Source Target Type
+1   E2F1    ATM    2
+2   E2F4    ATM    2
+3    MYC    ATM    2
+4   TP53    ATM    2
+5   E2F1  DNMT1    1
+6  STAT3  DNMT1    2
+> 
+> length(unique(sort(c(circuit_tpo$Source, circuit_tpo$Target)) ))
+[1] 29
+> 
+> # extract TFs in the network 
+> #---------------------------
+> TFs_in_circuit <- sort(union(circuit_tpo$Source, circuit_tpo$Target))
+> length(TFs_in_circuit)
+[1] 29
+> 
+> fname.out <- 'TFs-in-circuit.txt'
+> write.table(TFs_in_circuit, file = fname.out, sep = '\t', quote = F, row.names = F)
+> 
+> proc.time()
+   user  system elapsed 
+  0.176   0.038   0.202 

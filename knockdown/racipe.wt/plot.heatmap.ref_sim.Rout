@@ -1,0 +1,302 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> 
+> library(sRACIPE)
+Loading required package: SummarizedExperiment
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+Loading required package: DelayedArray
+Loading required package: matrixStats
+
+Attaching package: ‘matrixStats’
+
+The following objects are masked from ‘package:Biobase’:
+
+    anyMissing, rowMedians
+
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges
+
+The following objects are masked from ‘package:base’:
+
+    aperm, apply, rowsum
+
+Loading required package: Rcpp
+> library(NetAct)
+> # source('../heatmapSimilarity.updated.R')
+> # source('../functions.R')
+> library(gplots)
+
+Attaching package: ‘gplots’
+
+The following object is masked from ‘package:IRanges’:
+
+    space
+
+The following object is masked from ‘package:S4Vectors’:
+
+    space
+
+The following object is masked from ‘package:stats’:
+
+    lowess
+
+> 
+> # Constants 
+> #----------
+> circuit_idx <- '0.09-32-0.85'
+> NO_MODELS <- 10000
+> 
+> # input directory for hS objects obtained from cal.metrics.sim_circuits.R
+> hS.dir <- '../../networks/circuits.hS/' 
+> 
+> outdir <- './data/'
+> dir.create(outdir)
+Warning message:
+In dir.create(outdir) : './data' already exists
+> figdir <- './figs/'
+> dir.create(figdir)
+Warning message:
+In dir.create(figdir) : './figs' already exists
+> 
+> # Explore one selected circuit
+> #-----------------------------
+> racipe <- readRDS(file = paste('../../networks/circuits.sim/circuit_simulated_', 
++                                circuit_idx, '.rds', sep = '') )
+> names(racipe)
+ [1] "ATM"     "DNMT1"   "DNMT3A"  "E2F1"    "E2F2"    "E2F4"    "E2F5"   
+ [8] "ETS2"    "GATA1"   "IRF3"    "MYBL2"   "MYC"     "MYCN"    "NFIC"   
+[15] "PAX5"    "POU2F1"  "RARA"    "RB1"     "STAT3"   "TFDP1"   "TP53"   
+[22] "TP63"    "USF2"    "MCM3"    "MCM5"    "SMARCA4" "IRF7"    "EBF1"   
+[29] "CTBP1"  
+> length(names(racipe))
+[1] 29
+> 
+> # Plot circuit
+> #-------------
+> #sRACIPE::sracipePlotCircuit(racipe, plotToFile = F) 
+> sRACIPE:: sracipePlotCircuit(racipe, plotToFile = T) 
+> 
+> class(racipe)
+[1] "RacipeSE"
+attr(,"package")
+[1] "sRACIPE"
+> names(racipe)
+ [1] "ATM"     "DNMT1"   "DNMT3A"  "E2F1"    "E2F2"    "E2F4"    "E2F5"   
+ [8] "ETS2"    "GATA1"   "IRF3"    "MYBL2"   "MYC"     "MYCN"    "NFIC"   
+[15] "PAX5"    "POU2F1"  "RARA"    "RB1"     "STAT3"   "TFDP1"   "TP53"   
+[22] "TP63"    "USF2"    "MCM3"    "MCM5"    "SMARCA4" "IRF7"    "EBF1"   
+[29] "CTBP1"  
+> assays(racipe)
+List of length 1
+names(1): deterministic
+> 
+> circuit_tpo <- sracipeCircuit(racipe)
+> length(unique(sort(c(circuit_tpo$Source, circuit_tpo$Target)) ))
+[1] 29
+> 
+> # Save the circuit
+> #----------------- 
+> outdir <- './data/'
+> fname.out <- paste(outdir, 'circuit-', circuit_idx, '.tpo' ,sep = '')
+> write.table(circuit_tpo, file = fname.out, sep = '\t', quote = F, row.names = F)
+> 
+> # extract TFs in the network 
+> #---------------------------
+> TFs_in_circuit <- union(circuit_tpo$Source, circuit_tpo$Target)
+> length(TFs_in_circuit)
+[1] 29
+> 
+> fname.out <- paste(outdir, 'TFs-', circuit_idx, '.txt' ,sep = '')
+> write.table(TFs_in_circuit, file = fname.out, sep = '\t', quote = F, row.names = F)
+> 
+> # Plot simulation data
+> #---------------------
+> sRACIPE::sracipePlotData(racipe, plotToFile = T)
+Plots saved as pdf files in the working directory.
+class: RacipeSE 
+dim: 29 10000 
+metadata(7): config annotation ... pca assignedClusters
+assays(1): deterministic
+rownames(29): ATM DNMT1 ... EBF1 CTBP1
+rowData names(29): ATM DNMT1 ... EBF1 CTBP1
+colnames: NULL
+colData names(393): G_ATM G_DNMT1 ... EBF1 CTBP1
+> # sRACIPE::sracipePlotData(racipe, plotToFile = F) 
+> 
+> # Load heatmap similarity object
+> #-------------------------------
+> fname.hS <- paste(hS.dir, 'hS_', circuit_idx, '.rds', sep = '')
+> fname.hS
+[1] "../../networks/circuits.hS/hS_0.09-32-0.85.rds"
+> hS <- readRDS(file = fname.hS)
+> hS$AvgDist
+[1] 0.008929817
+> hS$simulated.cluster.freq
+simulated.cluster.adjusted
+     0      1      2 
+0.0642 0.2443 0.6915 
+> hS$simulated.cluster.freq[2] + hS$simulated.cluster.freq[3]
+     1 
+0.9358 
+> hS$KL
+[1] 0.1636634
+> 
+> 
+> # Save simulation data with cluster information
+> dim(hS$dataSimulation)
+[1]    29 10000
+> data.sim <- t(hS$dataSimulation)
+> dim(data.sim)
+[1] 10000    29
+> cluster.labels <- c(rep('CL1', hS$simulated.cluster.freq[1]*NO_MODELS), 
++                     rep('CL2', hS$simulated.cluster.freq[2]*NO_MODELS),  
++                     rep('CL0', (hS$simulated.cluster.freq[3]*NO_MODELS+1))) 
+> sum(cluster.labels=='CL0') 
+[1] 6916
+> sum(cluster.labels=='CL1') 
+[1] 641
+> sum(cluster.labels=='CL2') 
+[1] 2443
+> 
+> data.sim.labeled <- cbind(cluster.labels, data.sim)
+> colnames(data.sim.labeled) <- c('CLUSTER.NO', colnames(data.sim))
+> fname.out <- paste(outdir, 'data.sim.labeled.csv', sep = '')
+> write.csv(data.sim.labeled, fname.out, row.names = FALSE, quote = F)
+> 
+> # Help for heatmap.2 graphical params: https://www.biostars.org/p/312405/ 
+> # par(oma=c(1,1,1,1)); # bottom, left, top, right
+> # heatmap.2(hS$dataReference, trace = 'none') 
+> 
+> # Heatmap for reference data
+> #---------------------------
+> hS.ref <- hS$dataReference
+> WIDTH <- 8
+> HEIGHT <- 8
+> #figname <- paste(figdir, 'heatmap.refData-', WIDTH, 'x', HEIGHT,'.pdf', sep = '') 
+> #pdf(file = figname, paper = 'special', width = WIDTH, height = HEIGHT) 
+> 
+> figname <- paste(figdir, 'heatmap.refData-.pdf', sep = '') 
+> pdf(file = figname, paper = 'special') 
+> par(mfrow = c(1, 1)) 
+> # par(mar=c(12.1,2.1,2.0,2.1)) # bottom, left
+> par(oma=c(2,1,1,1)); # bottom, left, top, right
+> heatmap.2(hS$dataReference, trace = 'none') 
+> dev.off() 
+null device 
+          1 
+> 
+> # Plot simulated.refCor 
+> #---------------------
+> # hS$simulated.refCor: pearson correlation between data.REF and data.sim 
+> simulated.refCor <- hS$simulated.refCor
+> dim(simulated.refCor)
+[1] 10000    20
+> 
+> WIDTH <- 8
+> HEIGHT <- 6
+> figname <- paste(figdir, 'heatmap.simulated.refCor-', WIDTH, 'x', HEIGHT,'.pdf', sep = '')
+> pdf(file = figname, paper = 'special', width = WIDTH, height = HEIGHT)
+> graphics::image(hS$simulated.refCor) 
+> #graphics::image(t(hS$simulated.refCor))
+> dev.off()
+null device 
+          1 
+> 
+> # Heatmap for simulation data
+> #----------------------------
+> col2 <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
++           "#D55E00", "#CC79A7") 
+> plotColor <- c("#5E4FA2", "#4F61AA", "#4173B3", "#3386BC", "#4198B6",
++                "#51ABAE", "#62BEA6", "#77C8A4", "#8ED1A4", "#A4DAA4",
++                "#B8E2A1", "#CBEA9D", "#DEF199", "#EAF69F", "#F2FAAC",
++                "#FAFDB8", "#FEFAB6", "#FEF0A5", "#FEE695", "#FDD985",
++                "#FDC978", "#FDB96A", "#FCA75E", "#F99254", "#F67D4A",
++                "#F26943", "#E85A47", "#DE4B4B", "#D33C4E", "#C1284A",
++                "#AF1446", "#9E0142")
+> simClusters <- as.character(col2[(1+hS$simClusters)]) 
+> 
+> WIDTH <- 8
+> HEIGHT <- 6
+> # figname <- paste(figdir, 'heatmap.simulated-', WIDTH, 'x', HEIGHT,'.pdf', sep = '')
+> # pdf(file = figname, paper = 'special', width = WIDTH, height = HEIGHT) 
+> 
+> figname <- paste(figdir, 'heatmap.simulated.pdf', sep = '')
+> pdf(file = figname, paper = 'special')
+> gplots::heatmap.2(hS$dataSimulation, trace = "none",
++                   dendrogram = "none", Colv=FALSE, col = plotColor,
++                   ColSideColors = simClusters,
++                   main = "Simulated Data",
++                   distfun=function(x) as.dist(1-cor(t(x), method = "s")))
+> dev.off()
+null device 
+          1 
+> 
+> proc.time()
+     user    system   elapsed 
+11611.027    31.713 11673.775 

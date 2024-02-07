@@ -1,0 +1,149 @@
+#!/usr/bin/env Rscript
+remove(list = ls()) 
+
+MINIMUM.CIRCUIT.SIZE <- 15
+
+# Resources: 
+# 1. http://r-statistics.co/Linear-Regression.html 
+circuit_metrics.sim <- read.csv(file = '../results/summary.circuits.sim.sortedByAcc_flex.csv', row.names = 1)
+circuit_metrics.sim <- circuit_metrics.sim[circuit_metrics.sim$Nodes>=MINIMUM.CIRCUIT.SIZE, ]
+
+figdir <- './figs.flexibility/'
+dir.create(figdir)
+fname_fig <- paste0(figdir, 'networksize-vs-flexibility.pdf')
+pdf(file=fname_fig, width=6, height=8, paper = "special", onefile = TRUE) 
+par(mfrow=c(3,1))
+par(mar=c(5.0, 5.5, 1.5, 2)) # bottom, left, top, right
+plot(circuit_metrics.sim$Nodes, circuit_metrics.sim$flexibility, 
+     xlab='Nodes', ylab='')
+
+plot(circuit_metrics.sim$Interactions, circuit_metrics.sim$flexibility, 
+     xlab='Interactions', ylab='')
+
+plot(circuit_metrics.sim$PosInt, circuit_metrics.sim$flexibility, 
+     xlab='Positive Interactions', ylab='')
+
+dev.off()
+
+class(circuit_metrics.sim$TopTFs)
+
+# Bar plot
+#---------
+data.bp <- cbind(rownames(circuit_metrics.sim),
+                 circuit_metrics.sim$FeatureRatio,  
+                 circuit_metrics.sim$TopTFs, 
+                 circuit_metrics.sim$AbsCor, 
+                 circuit_metrics.sim$Nodes,
+                 circuit_metrics.sim$Interactions,
+                 circuit_metrics.sim$flexibility) 
+
+colnames(data.bp) <- c('circuit_idx', 'binding_probability', 'top_TFs', 'abs_correlation',
+                        'nodes', 'interactions' ,'flexibility') 
+data.bp <- as.data.frame(data.bp)
+data.bp$binding_probability <- sprintf("%03.2f",as.numeric(data.bp$binding_probability)) 
+data.bp$binding_probability <- as.factor(data.bp$binding_probability) 
+
+data.bp$top_TFs <- sprintf("%02d", as.integer(data.bp$top_TFs)) # padd a zero for 4 and 8
+data.bp$top_TFs <- as.factor(data.bp$top_TFs)
+
+data.bp$abs_correlation <- sprintf("%03.2f",as.numeric(data.bp$abs_correlation)) 
+data.bp$abs_correlation <- as.factor(data.bp$abs_correlation) 
+
+data.bp$nodes <- sprintf("%03d", as.integer(data.bp$nodes))
+data.bp$nodes <- as.factor(data.bp$nodes)
+
+data.bp$interactions <- sprintf("%03d", as.integer(data.bp$interactions))
+data.bp$interactions <- as.factor(data.bp$interactions)
+
+data.bp$flexibility <- as.numeric(data.bp$flexibility)
+
+
+library(reshape2)
+data_long <- melt(data.bp, id.vars = c('circuit_idx','binding_probability', 
+                                       'top_TFs', 'nodes', 'interactions', 
+                                       'abs_correlation')) 
+colnames(data_long)
+
+HEIGHT <- 8
+YLIMIT <- c(0, 0.10)
+
+library(ggplot2) 
+p.bp <- ggplot(data_long, aes(x=binding_probability, y=value)) +
+        geom_boxplot() + 
+        ylim(YLIMIT) + 
+        theme(axis.title.y=element_blank(), 
+              axis.text.x = element_text(angle = 90, vjust=0.5))
+
+p.bp 
+
+figname <- paste(figdir, 'binding.prob_vs_flexibility.pdf', sep = '')
+ggsave(filename =  figname, width = 8, height = HEIGHT) 
+p.topTFs <- ggplot(data_long, aes(x=top_TFs, y=value)) +
+            geom_boxplot() + 
+            ylim(YLIMIT) + 
+            theme(axis.title.y=element_blank(), 
+                  axis.text.x = element_text(angle = 90, vjust=0.5))
+p.topTFs
+figname <- paste(figdir, 'topTFs_vs_flexibility.pdf', sep = '')
+ggsave(filename =  figname, width = 8, height = HEIGHT) 
+
+
+p.nodes <- ggplot(data_long, aes(x=nodes, y=value)) +
+           geom_boxplot() + 
+           ylim(YLIMIT) + 
+           theme(axis.title.y=element_blank(), 
+                 axis.text.x = element_text(angle = 90, vjust=0.5))
+p.nodes
+
+figname <- paste(figdir, 'nodes_vs_flexibility.pdf', sep = '')
+ggsave(filename =  figname, width = 14, height = HEIGHT) 
+
+
+
+p.interactions <- ggplot(data_long, aes(x=interactions, y=value)) +
+  geom_boxplot() + 
+  ylim(YLIMIT) + 
+  theme(axis.title.y=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust=0.5))
+p.interactions
+
+figname <- paste(figdir, 'interactions_vs_flexibility.pdf', sep = '')
+ggsave(filename =  figname, width = 24, height = HEIGHT) 
+
+
+p.absCorr <- ggplot(data_long, aes(x=abs_correlation, y=value)) +
+            geom_boxplot() + 
+            ylim(YLIMIT) +
+            theme(axis.title.y=element_blank(), 
+                  axis.text.x = element_text(angle = 90, vjust=0.5)) 
+p.absCorr
+figname <- paste(figdir, 'absCorr_vs_flexibility.pdf', sep = '')
+ggsave(filename =  figname, width = 8, height = HEIGHT) 
+
+
+# remove y axis lable
+#--------------------
+p.bp <- p.bp + theme(axis.title.x=element_blank())
+p.bp
+p.topTFs <-  p.topTFs  + theme(axis.title.x=element_blank()) + theme(axis.text.y=element_blank()) 
+p.topTFs
+p.absCorr <- p.absCorr + theme(axis.title.x=element_blank()) + theme(axis.text.y=element_blank()) 
+p.absCorr
+
+library(gridExtra)
+plots <- grid.arrange(p.bp, p.topTFs, p.absCorr, ncol=3)
+
+WIDTH <- 9
+HEIGHT <- 3
+figname <- paste(figdir, 'parameters_vs_flexibility-', WIDTH,'x', HEIGHT,'.pdf', sep = '')
+ggsave(filename =  figname, width=WIDTH, height = HEIGHT, plots) 
+
+WIDTH <- 9
+HEIGHT <- 4
+figname <- paste(figdir, 'parameters_vs_flexibility-', WIDTH,'x', HEIGHT,'.pdf', sep = '')
+ggsave(filename =  figname, width=WIDTH, height = HEIGHT, plots) 
+
+WIDTH <- 12
+HEIGHT <- 4
+figname <- paste(figdir, 'parameters_vs_flexibility-', WIDTH,'x', HEIGHT,'.pdf', sep = '')
+ggsave(filename =  figname, width=WIDTH, height = HEIGHT, plots) 

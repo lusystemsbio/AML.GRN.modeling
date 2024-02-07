@@ -1,0 +1,80 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> remove(list = ls()) 
+> 
+> MINIMUM.CIRCUIT.SIZE <- 15
+> 
+> # Resources: 
+> # 1. http://r-statistics.co/Linear-Regression.html 
+> 
+> circuit_metrics.sim <- read.csv(file = '../results/summary.circuits.sim.sortedByAcc_flex.csv', row.names = 1)
+> circuit_metrics.sim <- circuit_metrics.sim[circuit_metrics.sim$Nodes>=MINIMUM.CIRCUIT.SIZE, ]
+> 
+> figdir <- './figs.flexibility.accuracy/'
+> dir.create(figdir)
+Warning message:
+In dir.create(figdir) : './figs.flexibility.accuracy' already exists
+> 
+> 
+> # accuracy vs flexibility  
+> #-------------------------
+> WIDTH <- 9
+> HEIGHT <- 9
+> fname_fig <- paste0(figdir, 'accuracy-vs-flexibility-', WIDTH, 'x', HEIGHT,'.pdf')
+> pdf(file=fname_fig, width=WIDTH, height=HEIGHT, paper = "special", onefile = TRUE) 
+> par(mfrow=c(1,1))
+> #par(mar=c(5.0, 5.5, 1.5, 2)) # bottom, left, top, right
+> plot(circuit_metrics.sim$idxAccuracy, circuit_metrics.sim$idxFlexibility, 
++      xlab='accuracy ranking', ylab='flexibility ranking', 
++      cex.axis = 2.0)
+> points(circuit_metrics.sim$idxAccuracy[1], circuit_metrics.sim$idxFlexibility[1], 
++        cex=3.0, col='red', pch=19)
+> dev.off()
+null device 
+          1 
+> 
+> 
+> 
+> # flexibility vs accuracy
+> #-------------------------
+> WIDTH <- 9
+> HEIGHT <- 9
+> fname_fig <- paste0(figdir, 'flexibility-vs-accuracy-', WIDTH, 'x', HEIGHT,'.pdf')
+> pdf(file=fname_fig, width=WIDTH, height=HEIGHT, paper = "special", onefile = TRUE) 
+> par(mfrow=c(1,1))
+> #par(mar=c(5.0, 5.5, 1.5, 2)) # bottom, left, top, right
+> plot(circuit_metrics.sim$idxFlexibility, circuit_metrics.sim$idxAccuracy, 
++      xlab='flexibility ranking', ylab='accuracy ranking')
+> points(circuit_metrics.sim$idxFlexibility[1], circuit_metrics.sim$idxAccuracy[1], 
++        cex=3.0, col='red', pch=19) 
+> dev.off()
+null device 
+          1 
+> 
+> 
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  0.222   0.036   0.250 

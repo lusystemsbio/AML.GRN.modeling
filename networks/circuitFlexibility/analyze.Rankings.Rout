@@ -1,0 +1,210 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> circuit_metrics.sim <- read.csv(file = '../results/summary.circuits.sim.sorted.csv', row.names = 1)
+> 
+> figdir <- './figs.bc/'
+> dir.create(figdir)
+> 
+> circuit_metrics.sim[1:10, 1:6]
+             FeatureRatio TopTFs AbsCor Nodes Interactions PosInt
+0.07-32-0.75         0.07     32   0.75    52          165     87
+0.07-32-0            0.07     32   0.00    58          176     97
+0.08-28-0.55         0.08     28   0.55    53          168     92
+0.06-32-0.25         0.06     32   0.25    60          181    101
+0.06-56-0.85         0.06     56   0.85    45          200    110
+0.05-60-0.85         0.05     60   0.85    53          230    127
+0.08-28-0.7          0.08     28   0.70    50          158     85
+0.07-44-0.85         0.07     44   0.85    39          145     78
+0.06-32-0.4          0.06     32   0.40    59          180    100
+0.08-44-0.65         0.08     44   0.65    84          279    162
+> unique(sort(circuit_metrics.sim[1:10, 4]))
+[1] 39 45 50 52 53 58 59 60 84
+> length(unique(sort(circuit_metrics.sim[1:10, 4])))
+[1] 9
+> 
+> circuit_metrics.sim[219:228, 1:6]
+             FeatureRatio TopTFs AbsCor Nodes Interactions PosInt
+0.16-44-0.85         0.16     44   0.85    36          152     88
+0.14-40-0.8          0.14     40   0.80    56          222    128
+0.14-60-0.75         0.14     60   0.75    98          408    244
+0.16-52-0.65         0.16     52   0.65    96          382    231
+0.08-56-0.7          0.08     56   0.70    97          405    246
+0.12-36-0.8          0.12     36   0.80    48          171     96
+0.07-60-0.6          0.07     60   0.60   112          442    274
+0.2-60-0.35          0.20     60   0.35   115          457    277
+0.2-44-0.85          0.20     44   0.85    37          155     89
+0.2-24-0.7           0.20     24   0.70    40          125     73
+> unique(sort(circuit_metrics.sim[219:228, 4]))
+ [1]  36  37  40  48  56  96  97  98 112 115
+> length(unique(sort(circuit_metrics.sim[219:228, 4])))
+[1] 10
+> 
+> 
+> 
+> 
+> 
+> 
+> WIDTH <- 6 
+> HEIGHT <- 10 
+> figname <- paste(figdir, 'compare.indices.pdf', sep = '')
+> pdf(file = figname, paper = 'special', width = WIDTH, height = HEIGHT)
+> par(mfrow=c(3,1))
+> par(mar=c(1.1,4.0,2.1,1.1)) # bottom, left, top, right
+> plot(circuit_metrics.sim$Nodes, circuit_metrics.sim$idxAccuracy, #ylim=c(0, 1.0),
++      xlab='', ylab='Accuracy')
+> plot(circuit_metrics.sim$Nodes, circuit_metrics.sim$idxAvgDist, #ylim=c(0, 1.0),
++      xlab='', ylab='Avg Dist') 
+> par(mar=c(4.1,4.0,2.1,1.1)) # bottom, left, top, right
+> plot(circuit_metrics.sim$Nodes, circuit_metrics.sim$idxFlexibility, #ylim=c(0, 1.0),
++      xlab='Nodes', ylab='Flexibility')
+> dev.off()
+null device 
+          1 
+> 
+> 
+> 
+> 
+> WIDTH  <- 12
+> HEIGHT <- 8
+> figname <- paste(figdir, 'compare.index_pairs.pdf', sep = '')
+> pdf(file = figname, paper = 'special', width = WIDTH, height = HEIGHT)
+> par(mfrow=c(2,2))
+> par(mar=c(2.1,4.0,2.1,1.1)) # bottom, left, top, right
+> plot(circuit_metrics.sim$Nodes, circuit_metrics.sim$idxBoth,  
++      xlab='', ylab='Accuracy + Avg Dist')
+> plot(circuit_metrics.sim$Nodes, circuit_metrics.sim$idxAccuracy+circuit_metrics.sim$idxFlexibility, 
++      xlab='Nodes', ylab='Accuracy + Flexibility')
+> plot(circuit_metrics.sim$Nodes, circuit_metrics.sim$idxAvgDist+circuit_metrics.sim$idxFlexibility, 
++      xlab='Nodes', ylab='Avg Dist + Flexibility')
+> #par(mar=c(4.1,4.0,2.1,1.1)) # bottom, left, top, right
+> plot(circuit_metrics.sim$Nodes, circuit_metrics.sim$idxTrio,  
++      xlab='', ylab='Accuracy + Avg Dist + Flexibility')
+> 
+> dev.off()
+null device 
+          1 
+> 
+> 
+> 
+> 
+> #===============================================
+> # FlexAccuracy: flexibility*3 + Accuracy 
+> # circuits with low flexibility are NOT removed
+> #===============================================
+> 
+> # Remove circuits with nodes fewer than 10
+> # tmp.df <- circuit_metrics.sim[circuit_metrics.sim$Nodes <10, ]
+> # circuit_metrics.sim <- circuit_metrics.sim[circuit_metrics.sim$Nodes >=10, ]
+> 
+> 
+> # WIDTH <- 6 
+> # HEIGHT <- 10 
+> # figname <- paste(figdir, 'log.metrics.pdf', sep = '')
+> # pdf(file = figname, paper = 'special', width = WIDTH, height = HEIGHT)
+> # par(mfrow=c(3,1))
+> # par(mar=c(1.1,4.0,2.1,1.1)) # bottom, left, top, right
+> # plot(circuit_metrics.sim$Nodes, -log10(circuit_metrics.sim$Accuracy), col='red', #ylim=c(0, 2.0), 
+> #      xlab='', ylab='-log(metric)')  
+> # points(circuit_metrics.sim$Nodes, -log10(circuit_metrics.sim$flexibility), col='black')
+> # 
+> # plot(circuit_metrics.sim$Nodes, -log10(circuit_metrics.sim$Accuracy)*2, col='red', 
+> #      xlab='Nodes', ylab='-log(metric)', ylim=c(0, 2.0))  
+> # points(circuit_metrics.sim$Nodes, -log10(circuit_metrics.sim$flexibility)/2, col='black')
+> # 
+> # par(mar=c(4.1,4.0,2.1,1.1)) # bottom, left, top, right
+> # plot(circuit_metrics.sim$Nodes, -log10(circuit_metrics.sim$Accuracy)*2, col='red', 
+> #      xlab='Nodes', ylab='-log(metric)', ylim=c(0, 2.5)) 
+> # points(circuit_metrics.sim$Nodes, -log10(circuit_metrics.sim$flexibility)/2, col='black')
+> # points(circuit_metrics.sim$Nodes, -log10(circuit_metrics.sim$flexibility)/2 
+> #        -log10(circuit_metrics.sim$Accuracy)*2, col='blue')
+> # dev.off()
+> 
+> # after rescaling
+> nlogFlex <- -log10(circuit_metrics.sim$flexibility)  
+> nlogAcc <- -log10(circuit_metrics.sim$Accuracy)
+> 
+> mean(nlogFlex) # 1.502984
+[1] 1.634605
+> median(nlogFlex) # 1.581704 
+[1] 1.687805
+> sd(nlogFlex) # 0.2097907
+[1] 0.2195559
+> mean(nlogAcc) # 0.1799565
+[1] 0.099144
+> median(nlogAcc) # 0.1038046
+[1] 0.05384261
+> sd(nlogAcc) # 0.1772626 
+[1] 0.1261049
+> 
+> nlogFlex.z <- (nlogFlex-mean(nlogFlex))/sd(nlogFlex)
+> nlogAcc.z <- (nlogAcc-mean(nlogAcc))/sd(nlogAcc)
+> nlogComb.z <- nlogFlex.z + nlogAcc.z
+> 
+> mydata <- cbind(rownames(circuit_metrics.sim), circuit_metrics.sim$Nodes, 
++                 nlogFlex.z, nlogAcc.z, nlogComb.z)
+> colnames(mydata) <- c('circuit_id', 'Nodes', 'nlogFlex', 'nlogAcc', 'nlogComb')
+> mydata <- as.data.frame(mydata) 
+> mydata$Nodes <- as.numeric(as.character(mydata$Nodes))
+> mydata$nlogAcc <- as.numeric(as.character(mydata$nlogAcc))
+> mydata$nlogFlex <- as.numeric(as.character(mydata$nlogFlex))
+> mydata$nlogComb <- as.numeric(as.character(mydata$nlogComb))
+> 
+> 
+> 
+> WIDTH <- 10
+> HEIGHT <- 6
+> figname <- paste(figdir, 'log.metrics.scaled.pdf', sep = '')
+> pdf(file = figname, paper = 'special', width = WIDTH, height = HEIGHT)
+> par(mfrow=c(1,1))
+> par(mar=c(4.1,4.0,2.1,1.1)) # bottom, left, top, right
+> plot(1, #mydata$Nodes, as.numeric(as.character(mydata$nlogAcc)), #col='red', 
++      type="n", xlab='Nodes', xlim=c(5, 65), ylim=c(-3, 5)) 
+> points(mydata$Nodes, mydata$nlogAcc, col='red', pch = 18)
+> points(mydata$Nodes, mydata$nlogFlex, col='black', pch = 22)
+> points(mydata$Nodes, mydata$nlogComb, col='blue', pch=25)
+> legend(x=40, y=-1.5, 
++        legend = c('negative log Accuracy', 'negative log Flexibility', 'Combined'), 
++        col=c('red', 'black', 'blue'), pch=c(18, 22, 25))
+> dev.off()
+null device 
+          1 
+> 
+> 
+> 
+> WIDTH <- 4
+> HEIGHT <- 6
+> figname <- paste(figdir, 'hist.log.metrics.scaled.pdf', sep = '')
+> pdf(file = figname, paper = 'special', width = WIDTH, height = HEIGHT)
+> par(mfrow=c(3,1)) 
+> hist(mydata$nlogAcc, main = 'negative log Accuracy', xlab = '', xlim = c(-3, 4)) 
+> hist(mydata$nlogFlex, main = 'negative log Flexibility', xlab = '', xlim = c(-3, 4)) 
+> hist(mydata$nlogComb, main = 'Combined', xlab = '', xlim = c(-3, 4))
+> dev.off()
+null device 
+          1 
+> 
+> proc.time()
+   user  system elapsed 
+  1.237   0.123   1.457 

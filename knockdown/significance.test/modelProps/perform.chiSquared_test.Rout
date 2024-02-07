@@ -1,0 +1,128 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> # Chi-squared test for goodness of fit
+> 
+> remove(list = ls()) 
+> 
+> datadir <- './data/'
+> outdir <- './data/'
+> 
+> fname.in <- paste(datadir , 'cluster_props.sorted.csv', sep = '')
+> mydata <- read.csv(file = fname.in, row.names = 1)
+> 
+> # AML vs (Hybrid, Untreated)
+> #---------------------------
+> cluster_props.sorted <- cbind(mydata[, 2], mydata[,3] + mydata[,4])  
+> colnames(cluster_props.sorted) <- c('AML', 'Hybrid+Untreated')
+> rownames(cluster_props.sorted) <- rownames(mydata)
+> 
+> 
+> # Normalize the values 
+> #---------------------
+> for(tf in rownames(cluster_props.sorted)){
++    cluster_props.sorted[tf, ] <- as.numeric(cluster_props.sorted[tf,])/sum(as.numeric(cluster_props.sorted[tf,]))
++ }
+> 
+> 
+> # Perform Chi-squared tests
+> #--------------------------
+> stats.TF <- as.data.frame(matrix(nrow = (nrow(cluster_props.sorted)-1), 
++                                  ncol = (ncol(cluster_props.sorted)+3)) )
+> colnames(stats.TF) <- c('TF', colnames(cluster_props.sorted), 'pvalue', 'nlogpvalue')
+> rownames(stats.TF) <- setdiff(rownames(cluster_props.sorted), c("Untreated")) 
+> 
+> for(tf in setdiff(rownames(cluster_props.sorted), c("Untreated"))){
++    print(tf)
++    chisq <- chisq.test(as.numeric(cluster_props.sorted[tf,])*100,
++                        p=as.numeric(cluster_props.sorted["Untreated",]))
++    stats.TF[tf, ] <- c(tf, as.numeric(cluster_props.sorted[tf,]), 
++                        chisq$p.value, -log10(chisq$p.value))  
++    #break()
++ }
+[1] "RB1_STAT3"
+[1] "POU2F1_RB1"
+[1] "MYCN_STAT3"
+[1] "POU2F1_STAT3"
+[1] "ETS2_STAT3"
+[1] "MYCN_RB1"
+[1] "ETS2_RB1"
+[1] "MYCN_POU2F1"
+[1] "ETS2_POU2F1"
+[1] "STAT3"
+[1] "RB1"
+[1] "ETS2_MYCN"
+[1] "POU2F1"
+[1] "MYCN"
+[1] "ETS2"
+[1] "ATM"
+[1] "IRF3"
+[1] "IRF7"
+[1] "EBF1"
+[1] "GATA1"
+[1] "MCM3"
+[1] "MCM5"
+[1] "CTBP1"
+[1] "SMARCA4"
+[1] "DNMT3A"
+[1] "E2F2"
+[1] "MYBL2"
+[1] "USF2"
+[1] "RARA"
+[1] "DNMT1"
+[1] "E2F5"
+[1] "TP63"
+[1] "PAX5"
+[1] "NFIC"
+[1] "E2F1"
+[1] "MYC"
+[1] "TP53"
+[1] "E2F4"
+[1] "TFDP1"
+[1] "MYC_E2F1"
+[1] "TP53_MYC"
+[1] "TFDP1_MYC"
+[1] "E2F4_MYC"
+[1] "TFDP1_E2F1"
+[1] "TP53_E2F1"
+[1] "E2F4_TP53"
+[1] "TFDP1_TP53"
+[1] "E2F4_TFDP1"
+[1] "E2F4_E2F1"
+> 
+> # Convert the values to numeric 
+> #-------------------------------
+> stats.TF$AML <- as.numeric(stats.TF$AML)
+> stats.TF$`Hybrid+Untreated` <- as.numeric(stats.TF$`Hybrid+Untreated`)
+> stats.TF$pvalue <- as.numeric(stats.TF$pvalue)
+> stats.TF$nlogpvalue <- as.numeric(stats.TF$nlogpvalue)
+> 
+> # Save data
+> #----------
+> fname.out <- paste(outdir , 'stats.Chi-squared_test.csv', sep = '')
+> write.csv(stats.TF, file = fname.out, quote = F) 
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  0.207   0.040   0.238 

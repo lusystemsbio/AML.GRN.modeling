@@ -1,0 +1,86 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> 
+> datadir <- './data/'
+> 
+> fname <- paste(datadir, 'mean_sd.racipe.models.wt.csv', sep='')
+> mean_sd.df <- read.csv(fname, row.names = 1)
+> 
+> 
+> fname <- paste(datadir, 'racipe.models.wt.labeled.csv', sep='') 
+> ndata.df <- read.csv(fname)
+> 
+> data.df <- as.data.frame(matrix(nrow = nrow(ndata.df), ncol = ncol(ndata.df)))
+> colnames(data.df) <- colnames(ndata.df)
+> 
+> col.no <- 1
+> for(gname in colnames(ndata.df)[2:ncol(ndata.df)]){
++   print(gname)
++   data.df[, gname] <- ndata.df[, gname] * mean_sd.df[gname, "sd"] + mean_sd.df[gname, "mean"] 
++   #break()
++ }
+[1] "ATM"
+[1] "DNMT1"
+[1] "DNMT3A"
+[1] "E2F1"
+[1] "E2F2"
+[1] "E2F4"
+[1] "E2F5"
+[1] "ETS2"
+[1] "GATA1"
+[1] "IRF3"
+[1] "MYBL2"
+[1] "MYC"
+[1] "MYCN"
+[1] "NFIC"
+[1] "PAX5"
+[1] "POU2F1"
+[1] "RARA"
+[1] "RB1"
+[1] "STAT3"
+[1] "TFDP1"
+[1] "TP53"
+[1] "TP63"
+[1] "USF2"
+[1] "MCM3"
+[1] "MCM5"
+[1] "SMARCA4"
+[1] "IRF7"
+[1] "EBF1"
+[1] "CTBP1"
+> 
+> data.df$CLUSTER_NO <- ndata.df$CLUSTER_NO
+> 
+> 
+> fname.out <- paste(datadir, 'racipe.models.unnormalized.csv', sep = '')
+> write.csv(data.df, fname.out, row.names = FALSE, quote = F)
+> 
+> 
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  1.119   0.090   1.212 

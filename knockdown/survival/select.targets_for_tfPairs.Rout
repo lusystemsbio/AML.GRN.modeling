@@ -1,0 +1,182 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> remove(list = ls()) 
+> 
+> circuit.idx <- '0.09-32-0.85'
+> 
+> datadir <- './data.target.tfPairs/'
+> 
+> # load tf pairs 
+> tfPairs <- readRDS(paste0(datadir, 'prodRate.pairs.rds'))  
+> class(tfPairs)
+[1] "list"
+> tfPairs$E2F4_TP53
+[1] "G_E2F4" "G_TP53"
+> 
+> # load TF-target DB
+> targetdb.list <- readRDS(file = '../../databases/targetDB.list.rds')
+> targetdb <- targetdb.list$`0.09`
+> names(targetdb)
+  [1] "ABL1"        "AHR"         "AIRE"        "APC"         "APEX1"      
+  [6] "AR"          "ARNT"        "ARNTL"       "ATF1"        "ATF2"       
+ [11] "ATF3"        "ATF4"        "ATF5"        "ATF6"        "ATM"        
+ [16] "BCL3"        "BCL6"        "BRCA1"       "BTF3"        "CDX1"       
+ [21] "CDX2"        "CEBPA"       "CEBPB"       "CEBPD"       "CEBPE"      
+ [26] "CIITA"       "CLOCK"       "CREB1"       "CREB3"       "CREB3L1"    
+ [31] "CREB3L3"     "CREB3L4"     "CREB5"       "CREBBP"      "CREM"       
+ [36] "CRY1"        "CTBP1"       "CTCF"        "CTCFL"       "CTNNB1"     
+ [41] "CUX1"        "DDIT3"       "DNMT1"       "DNMT3A"      "E2F1"       
+ [46] "E2F2"        "E2F3"        "E2F4"        "E2F5"        "E2F6"       
+ [51] "E2F7"        "EBF1"        "EGR1"        "EGR2"        "EGR3"       
+ [56] "EGR4"        "EIF2AK2"     "ELF1"        "ELF3"        "ELK1"       
+ [61] "ELK4"        "EP300"       "EPAS1"       "ERCC2"       "ERG"        
+ [66] "ESPL1"       "ESR1"        "ESR2"        "ESRRA"       "ESRRG"      
+ [71] "ETS1"        "ETS2"        "ETV4"        "ETV6"        "EWSR1"      
+ [76] "EZH2"        "FLI1"        "FOS"         "FOSL1"       "FOSL2"      
+ [81] "FOXA1"       "FOXA2"       "FOXD3"       "FOXF2"       "FOXG1"      
+ [86] "FOXM1"       "FOXO1"       "FOXO3"       "FOXP3"       "GABPA"      
+ [91] "GATA1"       "GATA2"       "GATA3"       "GATA4"       "GATA6"      
+ [96] "GCM1"        "GFI1"        "GLI1"        "GLI2"        "GLI3"       
+[101] "GLIS3"       "GTF2I"       "HAND2"       "HDAC1"       "HDAC2"      
+[106] "HDAC3"       "HDAC4"       "HDAC5"       "HDAC7"       "HDAC9"      
+[111] "HES1"        "HEY1"        "HIC1"        "HIF1A"       "HIPK2"      
+[116] "HMGA1"       "HMGA2"       "HNF1A"       "HNF4A"       "HOXA1"      
+[121] "HOXA10"      "HOXA5"       "HOXA9"       "HOXB7"       "HSF1"       
+[126] "HTT"         "ID4"         "IKBKB"       "IKBKG"       "ING1"       
+[131] "ING4"        "IRF1"        "IRF2"        "IRF3"        "IRF4"       
+[136] "IRF5"        "IRF7"        "IRF8"        "IRF9"        "JUN"        
+[141] "JUNB"        "JUND"        "KAT2B"       "KLF1"        "KLF12"      
+[146] "KLF13"       "KLF14"       "KLF16"       "KLF2"        "KLF4"       
+[151] "KLF5"        "KLF6"        "KLF8"        "LEF1"        "LMO2"       
+[156] "MAX"         "MAZ"         "MBD2"        "MCM2"        "MCM3"       
+[161] "MCM4"        "MCM5"        "MCM6"        "MCM7"        "MECOM"      
+[166] "MECP2"       "MEF2A"       "MEF2C"       "MEN1"        "MITF"       
+[171] "MSC"         "MTA1"        "MTF1"        "MYB"         "MYBL2"      
+[176] "MYC"         "MYCN"        "MYF5"        "MYF6"        "MYOD1"      
+[181] "MYOG"        "MZF1"        "NANOG"       "NCOA3"       "NEUROG3"    
+[186] "NF1"         "NFAT5"       "NFATC1"      "NFATC2"      "NFATC3"     
+[191] "NFATC4"      "NFE2L2"      "NFIA"        "NFIB"        "NFIC"       
+[196] "NFIL3"       "NFIX"        "NFKB1"       "NFKB2"       "NFKBIA"     
+[201] "NFKBIB"      "NFYA"        "NFYB"        "NFYC"        "NHLH2"      
+[206] "NKX2-5"      "NKX3-1"      "NOTCH2"      "NOTCH3"      "NOTCH4"     
+[211] "NPAS2"       "NPM1"        "NR0B1"       "NR0B2"       "NR1H3"      
+[216] "NR1H4"       "NR1I2"       "NR2F1"       "NR2F2"       "NR3C1"      
+[221] "NR3C2"       "NR4A1"       "NR5A1"       "NR5A2"       "NRF1"       
+[226] "OTX2"        "PARP1"       "PAX2"        "PAX3"        "PAX4"       
+[231] "PAX5"        "PAX6"        "PAX8"        "PAX9"        "PBX1"       
+[236] "PDX1"        "PER1"        "PER2"        "PER3"        "PGR"        
+[241] "PIAS1"       "PIAS2"       "PIAS3"       "PIAS4"       "PITX1"      
+[246] "PITX2"       "PLAG1"       "PML"         "POU1F1"      "POU2F1"     
+[251] "POU2F2"      "POU3F2"      "POU5F1"      "PPARA"       "PPARD"      
+[256] "PPARG"       "PPARGC1A"    "PRDM1"       "PROX1"       "PTTG1"      
+[261] "RARA"        "RARB"        "RARG"        "RB1"         "RBL1"       
+[266] "RBL2"        "RBMX"        "RBPJ"        "RBPJL"       "REL"        
+[271] "RELA"        "RELB"        "REST"        "RFX1"        "RFX2"       
+[276] "RFX5"        "RFXANK"      "RFXAP"       "RORA"        "RREB1"      
+[281] "RUNX1"       "RUNX2"       "RUNX3"       "RXRA"        "RXRB"       
+[286] "RXRG"        "SALL4"       "SATB1"       "SF1"         "SIRT1"      
+[291] "SMAD1"       "SMAD2"       "SMAD3"       "SMAD4"       "SMAD5"      
+[296] "SMAD6"       "SMAD7"       "SMAD9"       "SMARCA4"     "SMURF2"     
+[301] "SNAI1"       "SNAI2"       "SOS1"        "SOS2"        "SOX10"      
+[306] "SOX17"       "SOX2"        "SOX4"        "SOX9"        "SP1"        
+[311] "SP100"       "SP2"         "SP3"         "SP4"         "SPDEF"      
+[316] "SPI1"        "SREBF1"      "SREBF2"      "SRF"         "STAT1"      
+[321] "STAT2"       "STAT3"       "STAT4"       "STAT5A"      "STAT5B"     
+[326] "STAT6"       "TAL1"        "TBP"         "TBX21"       "TCF3"       
+[331] "TCF4"        "TCF7"        "TCF7L1"      "TCF7L2"      "TFAP2A"     
+[336] "TFAP2B"      "TFAP2C"      "TFAP4"       "TFCP2"       "TFCP2L1"    
+[341] "TFDP1"       "TLX1"        "TP53"        "TP63"        "TP73"       
+[346] "TSG101"      "TWIST1"      "TWIST2"      "USF1"        "USF2"       
+[351] "VDR"         "VHL"         "WT1"         "WWP1"        "XBP1"       
+[356] "YBX1"        "YY1"         "ZBTB14"      "ZBTB16"      "ZBTB7A"     
+[361] "ZEB1"        "ZFP36"       "ZIC1"        "ZIC2"        "ZIC3"       
+[366] "ZNF143"      "ZNF148"      "ZNF382"      "ZNF423"      "TAGLN2"     
+[371] "ASCC1"       "PATZ1"       "MTHFD1"      "FOXO6"       "PDS5A"      
+[376] "NANOS1"      "ZSCAN4"      "PGAM2"       "TRIM69"      "MED30"      
+[381] "LUZP1"       "ZCCHC14"     "GLIS2"       "NR6A1"       "SPZ1"       
+[386] "ZNF740"      "TCFAP2A"     "HOXB5"       "ZNF503"      "ZFP740"     
+[391] "TRMO"        "ZBTB49"      "ZIC4"        "ZBTB7B"      "RARA..RXRA" 
+[396] "TLX3"        "ODC1"        "NHLH1"       "ZNF524"      "GRHPR"      
+[401] "ZNF263"      "ZBTB6"       "GLIS1"       "ZBTB7C"      "INSM1"      
+[406] "SMPX"        "HIST1H2BN"   "AGGF1"       "ANXA11"      "EWSR1.FLI1" 
+[411] "ZBTB33"      "PPARG..RXRA" "SP8"         "GPD1"        "NNT"        
+[416] "PDLIM5"     
+> 
+> 
+> tf.targets <- list()
+> tf.targetsthat_are_tfs <- list()
+> for(tfPair in names(tfPairs)){
++   #print(tfPair)
++   tf1 <- strsplit(tfPair, "_")[[1]][1]
++   tf2 <- strsplit(tfPair, "_")[[1]][2] 
++   targets.tfPair <- unique(c(tf1, tf2, targetdb[[tf1]], targetdb[[tf2]])) 
++   print(length( targets.tfPair))
++   tf.targets[[tfPair]] <- targets.tfPair 
++   
++   tf.targetsthat_are_tfs[[tfPair]] <- names(targetdb)[names(targetdb) %in% targets.tfPair] 
++   #break()
++ }
+[1] 375
+[1] 653
+[1] 1094
+[1] 942
+[1] 479
+[1] 954
+[1] 814
+[1] 1184
+[1] 1069
+[1] 1520
+[1] 150
+[1] 221
+[1] 143
+[1] 294
+[1] 179
+[1] 91
+[1] 251
+[1] 171
+[1] 323
+[1] 241
+> 
+> names(tf.targets)
+ [1] "E2F4_TFDP1"   "E2F4_TP53"    "E2F4_MYC"     "E2F4_E2F1"    "TFDP1_TP53"  
+ [6] "TFDP1_MYC"    "TFDP1_E2F1"   "TP53_MYC"     "TP53_E2F1"    "MYC_E2F1"    
+[11] "ETS2_MYCN"    "ETS2_POU2F1"  "ETS2_RB1"     "ETS2_STAT3"   "MYCN_POU2F1" 
+[16] "MYCN_RB1"     "MYCN_STAT3"   "POU2F1_RB1"   "POU2F1_STAT3" "RB1_STAT3"   
+> length(tf.targets$E2F4_TFDP1)
+[1] 375
+> length(tf.targetsthat_are_tfs$E2F4_TFDP1)
+[1] 45
+> 
+> length(names(tf.targets))
+[1] 20
+> length(names(tf.targetsthat_are_tfs))
+[1] 20
+> 
+> 
+> saveRDS(tf.targets, file = paste0(datadir, 'tf.targets.by_tfPair.rds'))
+> saveRDS(tf.targetsthat_are_tfs, file = paste0(datadir, 'tf.targets_that_are_tfs.bytfPair.rds'))
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  0.363   0.042   0.393 

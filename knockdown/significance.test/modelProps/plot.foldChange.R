@@ -1,0 +1,88 @@
+
+remove(list = ls()) 
+
+datadir <- './data/'
+
+figdir <- './figs.foldChange/'
+dir.create(figdir)
+
+# Load data
+#----------
+fname.data <- paste(datadir , 'foldChange.csv', sep = '')
+foldChange <- read.csv(file = fname.data, row.names = NULL) 
+
+rownames(foldChange) <- foldChange$tf
+# Prepare Chi-squared test data for plotting
+#-------------------------------------------
+foldChange$tf <- factor(foldChange$tf, levels = foldChange$tf)
+
+# Plot the log p values 
+#-----------------------
+SIG.LEVEL <- 0.05
+YLIMIT <- c(0.0, 2.0)
+OFFSET.VERTICAL <- 0.08
+
+#print(-log10(SIG.LEVEL))
+
+#plot(stats.TF$nlogpvalue, ylim=YLIMIT, xlab='', ylab='', xaxt='n')
+#abline(h=-log10(SIG.LEVEL))  
+#axis(side = 1, at=1:dim(stats.TF)[1], las=2, 
+#     labels = rownames(stats.TF), tck = -0.03)
+#title(ylab = '-log10 p-value')
+
+
+library(gridExtra)
+library(ggplot2) 
+DOT.SIZE <- 0.7 
+SIZE.TICK_LABEL <- 12
+#YLIMIT <- c(0.0,  2.65) # max(stats.TF$nlogpvalue)  
+
+# plot_title <- paste('-log (pvalue)', 
+#                     sep = '  ') 
+
+# p1 <- ggplot(foldChange, aes(x = tf, y = foldChange)) + 
+#    geom_dotplot(binaxis = 'y', stackdir = 'center', 
+#                 dotsize=DOT.SIZE) + 
+#    #ylim(YLIMIT) + 
+#    coord_flip() 
+# p1
+
+p1 <- ggplot(foldChange, aes(x = tf, y = foldChange)) + 
+   geom_bar(aes(x=tf, y=foldChange), stat="identity") +
+   # theme(text = element_text(size=SIZE.TICK_LABEL), 
+   #       axis.text.x = element_text(angle = 90, vjust = -1, hjust=1)) +
+   coord_flip() 
+p1
+
+
+
+p2 <- p1 + theme(text = element_text(size=SIZE.TICK_LABEL),
+                 #axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+                 axis.text.y = element_text(angle = 0, vjust = 0.5, hjust = 1.5)#,
+                 #axis.title.x = element_blank(), axis.title.y = element_blank()
+                 ) 
+
+p2
+
+# p3 <- p1 + geom_hline(yintercept = -log10(SIG.LEVEL), linetype="longdash")
+# p3
+#p4 <- p2 + labs(x='Transcription Factor or Transcription Factor Pair', y='Fold Change')
+p4 <- p2 + labs(x='Condition', y='Fold Change')
+p4
+# p4 <- p3 + ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5))
+# 
+# p4
+
+
+# Save plots
+#----------
+WIDTH <- 6
+HEIGHT <- 8 #12
+fname.out <- paste(figdir, 'foldChange-', WIDTH, 'x', HEIGHT,'.pdf', sep = '')
+ggsave(filename = fname.out, p4, width = WIDTH, height = HEIGHT)
+
+WIDTH <- 4
+HEIGHT <- 8 #12
+fname.out <- paste(figdir, 'foldChange-', WIDTH, 'x', HEIGHT,'.pdf', sep = '') 
+ggsave(filename = fname.out, p4, width = WIDTH, height = HEIGHT)
+
