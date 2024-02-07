@@ -1,0 +1,90 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> remove(list = ls()) 
+> 
+> source('../../networks/functions.R')
+> #source('./functions.R')
+> 
+> datadir <- './results/'
+> outdir <- './rankedCircuits/'
+> dir.create(outdir)
+> 
+> circuit_metrics.sim.list <- readRDS(file = paste0(datadir,  './circuit_metrics.sim.list.rds'))
+> names(circuit_metrics.sim.list)
+ [1] "S1"  "S2"  "S3"  "S4"  "S5"  "S6"  "S7"  "S8"  "S9"  "S10" "S11" "S12"
+[13] "S13" "S14" "S15" "S16" "S17" "S18" "S19" "S20" "S21" "S22" "S23" "S24"
+[25] "S25" "S26" "S27" "S28" "S29" "S30"
+> 
+> circuit_metrics.sim.sorted <- list() 
+> 
+> for(sample_name in names(circuit_metrics.sim.list)){
++    print(sample_name)
++    circuit_metrics.sim <- circuit_metrics.sim.list[[sample_name]]
++    #circuit_metrics.sim.s <- sortByTwoIndices(circuit_metrics.sim)
++    #circuit_metrics.sim.sorted[[sample_name]]  <- sortByTwoIndices(circuit_metrics.sim.list[[sample_name]])
++    
++    circuit_metrics.sim.s <- sortByTwoIndices.acc_and_flex(circuit_metrics.sim)
++    circuit_metrics.sim.sorted[[sample_name]]  <- sortByTwoIndices.acc_and_flex(circuit_metrics.sim.list[[sample_name]]) 
++    
++    # break()
++ }
+[1] "S1"
+[1] "S2"
+[1] "S3"
+[1] "S4"
+[1] "S5"
+[1] "S6"
+[1] "S7"
+[1] "S8"
+[1] "S9"
+[1] "S10"
+[1] "S11"
+[1] "S12"
+[1] "S13"
+[1] "S14"
+[1] "S15"
+[1] "S16"
+[1] "S17"
+[1] "S18"
+[1] "S19"
+[1] "S20"
+[1] "S21"
+[1] "S22"
+[1] "S23"
+[1] "S24"
+[1] "S25"
+[1] "S26"
+[1] "S27"
+[1] "S28"
+[1] "S29"
+[1] "S30"
+> names(circuit_metrics.sim.sorted)
+ [1] "S1"  "S2"  "S3"  "S4"  "S5"  "S6"  "S7"  "S8"  "S9"  "S10" "S11" "S12"
+[13] "S13" "S14" "S15" "S16" "S17" "S18" "S19" "S20" "S21" "S22" "S23" "S24"
+[25] "S25" "S26" "S27" "S28" "S29" "S30"
+> 
+> saveRDS(circuit_metrics.sim.sorted, file = paste0(outdir,  './circuit_metrics.sim.sorted.rds'))
+> 
+> proc.time()
+   user  system elapsed 
+  0.716   0.064   0.776 

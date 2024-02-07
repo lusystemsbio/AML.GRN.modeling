@@ -1,0 +1,69 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> 
+> 
+> # Load circuit summary 
+> #-------------------- 
+> #datadir <- '../rankingsBypercentile/results/'
+> #datadir <- './results/'
+> #circuit_metrics.sim <- read.csv(file = paste0(datadir , "./summary.circuits.sim.sortedByAcc_flex.csv"), row.names = 1)
+> circuit_metrics.sim <- read.csv(file = "./results/summary.circuits.sim.sigVal.csv", row.names = 1)
+> 
+> # Load mean accuracy
+> #--------------------  
+> mean_sd.df <- read.csv(file = '../accuracy.fluctuation/para.all/results/accuracy.mean_sd.csv', row.names = 1)
+> 
+> # bring the circutis in the same order 
+> sum(rownames(circuit_metrics.sim)==rownames(mean_sd.df))
+[1] 2
+> circuit_metrics.sim <- circuit_metrics.sim[rownames(mean_sd.df),]
+> sum(rownames(circuit_metrics.sim)==rownames(mean_sd.df))
+[1] 532
+> 
+> # plot(circuit_metrics.sim$Accuracy)
+> # points(mean_sd.df$mean, col='red')
+> # 
+> # plot(circuit_metrics.sim$Accuracy[1:50], ylim = c(0, 1))
+> # points(mean_sd.df$mean[1:50], col='red')
+> # 
+> # plot(circuit_metrics.sim$Accuracy[1:10], ylim = c(0, 1))
+> # points(mean_sd.df$mean[1:10], col='red')
+> 
+> # replace accuracy with mean accuracy
+> circuit_metrics.sim$Accuracy <- mean_sd.df$mean
+> 
+> # add sd of accuracies
+> library("tibble")
+> circuit_metrics.sim  <- add_column(circuit_metrics.sim, Accuracy_sd=mean_sd.df$sd, .after = 'Accuracy')
+> 
+> # drop last three ranking columns
+> #circuit_metrics.sim.sub <-  subset(circuit_metrics.sim, select = -c(idxAccuracy, idxFlexibility, idxBoth) )  
+> 
+> write.csv(circuit_metrics.sim, file = paste0("./results/summary.circuits.sim.sigVal.csv"), row.names = T, quote = F) 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  0.352   0.049   0.397 

@@ -1,0 +1,154 @@
+
+R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> remove(list = ls()) 
+> 
+> NUM.RACIPE.MODELS <- 100000 #2 
+> NO_TOP_CIRCUITS <- 11
+> 
+> # output directories
+> #-------------------- 
+> outdir <- './circuits.sim/'
+> dir.create(outdir)
+> 
+> # Load library and functions
+> #---------------------------
+> library(sRACIPE)
+Loading required package: SummarizedExperiment
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+Loading required package: DelayedArray
+Loading required package: matrixStats
+
+Attaching package: ‘matrixStats’
+
+The following objects are masked from ‘package:Biobase’:
+
+    anyMissing, rowMedians
+
+Loading required package: BiocParallel
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges
+
+The following objects are masked from ‘package:base’:
+
+    aperm, apply, rowsum
+
+Loading required package: Rcpp
+Loading required package: shiny
+> 
+> # Load circuits
+> #-------------- 
+> circuits <- readRDS(file = '../../networks/circuits/circuits.uniq.rds')
+> length(circuits)
+[1] 555
+> set.seed(100) 
+> 
+> # Load circuit metrics
+> #---------------------------
+> #circuit_metrics.sim <- read.csv(file = '../networks/results/summary.circuits.sim.sorted.csv', row.names = 1)
+> circuit_metrics.sim <- read.csv(file = '../rankings.mean_acc/results/summary.circuits.sim.sortedByAcc_flex.csv', row.names = 1)
+> topCircuits <- rownames(circuit_metrics.sim)[1:NO_TOP_CIRCUITS]
+> 
+> # Allocate resources for parallel computing
+> #-------------------------------------------#
+> library(doParallel)
+Loading required package: foreach
+Loading required package: iterators
+> library(foreach)
+> NO_AVAILABLE_CORES <- detectCores() 
+> print(NO_AVAILABLE_CORES)
+[1] 28
+> cl <- makeCluster(NO_AVAILABLE_CORES)
+> class(cl)
+[1] "SOCKcluster" "cluster"    
+> registerDoParallel(cl)
+> getDoParWorkers()
+[1] 28
+> 
+> 
+> # Execute RACIPE simulations  - parallel
+> #----------------------------------------#
+> rv = foreach(idx_name = topCircuits, .inorder = TRUE) %dopar% { 
++       library(sRACIPE)
++       circuitSimulated <- sracipeSimulate(circuit = circuits[[idx_name]][,c("Source", "Target", "Type")], 
++                                   plotToFile = TRUE,
++                                   numModels = NUM.RACIPE.MODELS, # Change 
++                                   plots = FALSE,
++                                   stepper = "RK4",
++                                   integrateStepSize = 0.05) 
++       fname.sim.circuit <- paste(outdir, './circuit_simulated_', idx_name ,'.rds', sep = '') 
++       saveRDS(circuitSimulated, file = fname.sim.circuit)
++ }
+>  
+> #  Release resources for parallel computation 
+> #---------------------------------------------#
+> stopCluster(cl)
+> 
+> 
+> proc.time()
+     user    system   elapsed 
+    6.165     1.452 54442.475 

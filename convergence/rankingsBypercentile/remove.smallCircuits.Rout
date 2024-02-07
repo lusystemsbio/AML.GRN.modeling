@@ -1,0 +1,43 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> remove(list = ls()) 
+> 
+> MINIMUM.CIRCUIT.SIZE <- 15
+> 
+> outdir <- './results/'
+> dir.create(outdir)
+Warning message:
+In dir.create(outdir) : './results' already exists
+> 
+> circuit_metrics.sim <- read.csv(file = '../../networks/results/summary.circuits.sim.sigVal.csv', row.names = 1)
+> dim(circuit_metrics.sim) # 555
+[1] 555  22
+> circuit_metrics.sim <- circuit_metrics.sim[circuit_metrics.sim$Nodes>=MINIMUM.CIRCUIT.SIZE, ]
+> dim(circuit_metrics.sim) # 532
+[1] 532  22
+> 
+> write.csv(circuit_metrics.sim, file = paste0(outdir, "./summary.circuits.sim.sigVal.csv"), row.names = T, quote = F)
+> 
+> proc.time()
+   user  system elapsed 
+  0.179   0.035   0.204 
