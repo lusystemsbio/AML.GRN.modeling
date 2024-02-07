@@ -1,0 +1,72 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> 
+> # library(tidyverse)
+> #library(glmnet)
+> library(randomForest)
+randomForest 4.6-14
+Type rfNews() to see new features/changes/bug fixes.
+> 
+> NO_CLUSTERS.REF <- 2 # 3 
+> 
+> outdir  <- './data/'
+> dir.create(outdir )
+Warning message:
+In dir.create(outdir) : './data' already exists
+> 
+> # Load training data 
+> #-------------------
+> NO_META_COLS = 1
+> fname_data <- './data/racipe.models.wt.labeled.csv'
+> mydata = read.csv(file=fname_data, header=TRUE)
+> dim(mydata)
+[1] 10000    30
+> mydata <- mydata[mydata$CLUSTER_NO!=3, ]
+> dim(mydata)
+[1] 9358   30
+> 
+> mydata$CLUSTER_NO <- as.numeric(mydata$CLUSTER_NO==1)
+> mydata$CLUSTER_NO <- factor(mydata$CLUSTER_NO)
+> unique(mydata$CLUSTER_NO)
+[1] 1 0
+Levels: 0 1
+> 
+> # randomize data 
+> set.seed(1)
+> mydata <- mydata[sample(nrow(mydata)), ]
+> 
+> rf <- randomForest(CLUSTER_NO ~ MYC+TP53+RARA+RB1+ETS2+ATM+IRF3+GATA1+MYCN+STAT3,
++                    data=mydata
++                    )
+> 
+> fname.out <- paste(outdir, 'model.randomForest.rds', sep = '') 
+> saveRDS(rf, file = fname.out)
+> 
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  3.134   0.285   3.429 

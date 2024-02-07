@@ -1,0 +1,267 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> remove(list = ls())
+> 
+> library(sRACIPE)
+Loading required package: SummarizedExperiment
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+Loading required package: DelayedArray
+Loading required package: matrixStats
+
+Attaching package: ‘matrixStats’
+
+The following objects are masked from ‘package:Biobase’:
+
+    anyMissing, rowMedians
+
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges
+
+The following objects are masked from ‘package:base’:
+
+    aperm, apply, rowsum
+
+Loading required package: Rcpp
+> library(tidyverse)
+── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
+✔ ggplot2 3.3.2     ✔ purrr   0.3.4
+✔ tibble  3.0.3     ✔ dplyr   1.0.2
+✔ tidyr   1.1.2     ✔ stringr 1.4.0
+✔ readr   1.3.1     ✔ forcats 0.5.0
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::collapse()   masks IRanges::collapse()
+✖ dplyr::combine()    masks Biobase::combine(), BiocGenerics::combine()
+✖ dplyr::count()      masks matrixStats::count()
+✖ dplyr::desc()       masks IRanges::desc()
+✖ tidyr::expand()     masks S4Vectors::expand()
+✖ dplyr::filter()     masks stats::filter()
+✖ dplyr::first()      masks S4Vectors::first()
+✖ dplyr::lag()        masks stats::lag()
+✖ ggplot2::Position() masks BiocGenerics::Position(), base::Position()
+✖ purrr::reduce()     masks GenomicRanges::reduce(), IRanges::reduce()
+✖ dplyr::rename()     masks S4Vectors::rename()
+✖ purrr::simplify()   masks DelayedArray::simplify()
+✖ dplyr::slice()      masks IRanges::slice()
+> library(glmnet)
+Loading required package: Matrix
+
+Attaching package: ‘Matrix’
+
+The following objects are masked from ‘package:tidyr’:
+
+    expand, pack, unpack
+
+The following object is masked from ‘package:S4Vectors’:
+
+    expand
+
+Loaded glmnet 4.0-2
+> 
+> NO_CLUSTERS.REF <- 2 # 3
+> 
+> outdir  <- './data/'
+> dir.create(outdir )
+> 
+> outdir.kd.clustered <- './data.sim.clustered/' 
+> dir.create(outdir.kd.clustered)
+> source('./functions.classify_models.R')
+> 
+> # Load training data 
+> #-------------------
+> NO_META_COLS = 1
+> fname_data <- '../racipe.wt/data/racipe.models.wt.labeled.csv'
+> mydata = read.csv(file=fname_data, header=TRUE)
+> dim(mydata)
+[1] 10000    30
+> 
+> # Load trained model 
+> #-------------------
+> model <- readRDS('../racipe.wt/data/model.glmnet.rds')
+> 
+> # Load mean and sd of models (with no knockdown) 
+> #-----------------------------------------------
+> fname_data <- '../racipe.wt/data/mean_sd.racipe.models.wt.csv'
+> mean_sd.wt.df = read.csv(file=fname_data, header=TRUE)
+> 
+> means.wt <- mean_sd.wt.df$mean
+> names(means.wt) <- mean_sd.wt.df$tf
+> sds.wt <- mean_sd.wt.df$sd
+> names(sds.wt) <- mean_sd.wt.df$tf
+> # sum(mean_sd.wt.df$tf==rn)
+> 
+> # Load kd simulations 
+> #---------------------------
+> xtract_gene_name <- function(fname){
++   fname.suffix <- strsplit(fname, split = '-', fixed = TRUE)[[1]][2]
++   gene_name <- strsplit(fname.suffix, split = '.', fixed = TRUE)[[1]][1]
++   return(gene_name)
++ }
+> 
+> data.dir.sim <- '../../data.sim/' 
+> fnames <- sort(list.files(data.dir.sim, '*.rds'))
+> gene_names <- sapply(fnames, function(fname) xtract_gene_name(fname)) 
+> 
+> #=============
+> #cluster_props <- as.data.frame(matrix(nrow = (length(fnames)+1), ncol = (NO_CLUSTERS.REF+1))) 
+> cluster_props <- as.data.frame(matrix(nrow = (length(fnames)+1), ncol = NO_CLUSTERS.REF)) 
+> 
+> rownames(cluster_props) <- c('Untreated', gene_names)
+> colnames(cluster_props) <- c('Cluster_1', 'Cluster_2')
+> 
+> fname <- fnames[1]
+> for(fname in fnames){
++    print(fname)
++    gene_name <- xtract_gene_name(fname)
++    racipe <- readRDS(file = paste(data.dir.sim, fname, sep = ''))   
++    
++    geneExpression.kd <- assay(racipe,1) 
++    geneExpression.kd <- log2(1+geneExpression.kd) 
++    
++    ndata.kd <- t(normalize_by_wt_mean_and_sd(geneExpression=geneExpression.kd, 
++                                              means = means.wt, sds=sds.wt))   
++    
++    probabilities <- model %>% predict(newx = ndata.kd, type='response') 
++    predicted.classes <- ifelse(probabilities > 0.5, 1, 2) 
++    
++    # obtain cluster proportions: 
++    cluster_props[gene_name,] <- c(sum(predicted.classes==1), 
++                                   sum(predicted.classes==2))
++    
++    
++    # save ndata.kd with cluster id attached
++    ndata.kd.clustered <- cbind(predicted.classes, ndata.kd) 
++    colnames(ndata.kd.clustered) <- c('CLUSTER_NO', colnames(ndata.kd))
++    fname.ndata <- paste(outdir.kd.clustered, 'racipe-', gene_name, '.csv', sep = '')
++    write.csv(ndata.kd.clustered, fname.ndata, quote = F, row.names = F)
++    # break()
++ }
+[1] "racipe-ATM.rds"
+[1] "racipe-CTBP1.rds"
+[1] "racipe-DNMT1.rds"
+[1] "racipe-DNMT3A.rds"
+[1] "racipe-E2F1.rds"
+[1] "racipe-E2F2.rds"
+[1] "racipe-E2F4_E2F1.rds"
+[1] "racipe-E2F4_MYC.rds"
+[1] "racipe-E2F4_TFDP1.rds"
+[1] "racipe-E2F4_TP53.rds"
+[1] "racipe-E2F4.rds"
+[1] "racipe-E2F5.rds"
+[1] "racipe-EBF1.rds"
+[1] "racipe-ETS2_MYCN.rds"
+[1] "racipe-ETS2_POU2F1.rds"
+[1] "racipe-ETS2_RB1.rds"
+[1] "racipe-ETS2_STAT3.rds"
+[1] "racipe-ETS2.rds"
+[1] "racipe-GATA1.rds"
+[1] "racipe-IRF3.rds"
+[1] "racipe-IRF7.rds"
+[1] "racipe-MCM3.rds"
+[1] "racipe-MCM5.rds"
+[1] "racipe-MYBL2.rds"
+[1] "racipe-MYC_E2F1.rds"
+[1] "racipe-MYC.rds"
+[1] "racipe-MYCN_POU2F1.rds"
+[1] "racipe-MYCN_RB1.rds"
+[1] "racipe-MYCN_STAT3.rds"
+[1] "racipe-MYCN.rds"
+[1] "racipe-NFIC.rds"
+[1] "racipe-PAX5.rds"
+[1] "racipe-POU2F1_RB1.rds"
+[1] "racipe-POU2F1_STAT3.rds"
+[1] "racipe-POU2F1.rds"
+[1] "racipe-RARA.rds"
+[1] "racipe-RB1_STAT3.rds"
+[1] "racipe-RB1.rds"
+[1] "racipe-SMARCA4.rds"
+[1] "racipe-STAT3.rds"
+[1] "racipe-TFDP1_E2F1.rds"
+[1] "racipe-TFDP1_MYC.rds"
+[1] "racipe-TFDP1_TP53.rds"
+[1] "racipe-TFDP1.rds"
+[1] "racipe-TP53_E2F1.rds"
+[1] "racipe-TP53_MYC.rds"
+[1] "racipe-TP53.rds"
+[1] "racipe-TP63.rds"
+[1] "racipe-USF2.rds"
+> 
+> # Calculate cluster proportions for WT models using nnet preditor
+> #-----------------------------------------------------------------
+> probabilities <- model %>% predict(newx = as.matrix(mydata[, 2:ncol(mydata)]), type='response') 
+> predicted.classes <- ifelse(probabilities > 0.5, 1, 2) # WT models
+> 
+> cluster_props["Untreated",] <- c(sum(predicted.classes==1), 
++                                  sum(predicted.classes==2)) 
+> 
+> fname.out <- paste(outdir , 'cluster_props.csv', sep = '')
+> write.csv(cluster_props, file = fname.out, quote = F)
+> 
+> 
+> proc.time()
+   user  system elapsed 
+ 36.860   2.591  40.021 

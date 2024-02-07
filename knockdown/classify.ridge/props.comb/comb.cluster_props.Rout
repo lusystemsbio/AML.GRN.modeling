@@ -1,0 +1,45 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> remove(list = ls()) 
+> 
+> datadir <- './data/'
+> dir.create(datadir)
+> 
+> # Load cluser proportions for single and double knockdown 
+> #------------------------------------------------------- 
+> fname.in <- '../props.skd/data/cluster_props.csv'
+> cluster_props.skd <- read.csv(file = fname.in, row.names = 1) 
+> 
+> fname.in <- '../props.dkd/data/cluster_props.csv'
+> cluster_props.dkd  <- read.csv(file = fname.in, row.names = 1) 
+> 
+> # Combine both single and double knockdown cluster props  
+> #-------------------------------------------------------  
+> cluster_props.dkd.new <-  cluster_props.dkd[!rownames(cluster_props.dkd) %in% c("Untreated"),] 
+> cluster_props.comb <- rbind(cluster_props.skd, cluster_props.dkd.new)
+>  
+> fname.out <- paste(datadir, 'cluster_props.csv', sep = '')
+> write.csv(cluster_props.comb, file = fname.out, quote = F)
+> 
+> proc.time()
+   user  system elapsed 
+  0.539   0.065   0.595 

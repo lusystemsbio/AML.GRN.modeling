@@ -1,0 +1,120 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> remove(list = ls()) 
+> 
+> library(sRACIPE)
+Loading required package: SummarizedExperiment
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+Loading required package: DelayedArray
+Loading required package: matrixStats
+
+Attaching package: ‘matrixStats’
+
+The following objects are masked from ‘package:Biobase’:
+
+    anyMissing, rowMedians
+
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges
+
+The following objects are masked from ‘package:base’:
+
+    aperm, apply, rowsum
+
+Loading required package: Rcpp
+> 
+> datadir <- './data/'
+> dir.create(datadir)
+Warning message:
+In dir.create(datadir) : './data' already exists
+> 
+> circuit_idx <- '0.09-32-0.85'
+> 
+> # import simulated data
+> #----------------------
+> racipe <- readRDS(file = paste('../../../networks/circuits.sim/circuit_simulated_', 
++                                circuit_idx, '.rds', sep = '') )
+> 
+> geneExpression <- assay(racipe,1) 
+> geneExpression <- log2(1+geneExpression)
+> means <- rowMeans(geneExpression)
+> sds <-  apply(geneExpression, 1, sd)
+> 
+> # Store mean and sd of the untreated data 
+> #-----------------------------------------
+> mean_sd.df <- cbind(names(means), means, sds)
+> colnames(mean_sd.df) <- c('tf' ,'mean', 'sd')
+> 
+> fname.out <- paste(datadir, 'mean_sd.racipe.models.wt.csv', sep='')
+> write.csv(mean_sd.df, file = fname.out, quote = F, row.names = FALSE)
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  5.847   0.319   6.163 

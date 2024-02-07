@@ -1,0 +1,78 @@
+
+R version 4.0.2 (2020-06-22) -- "Taking Off Again"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> remove(list = ls()) 
+> 
+> # library(tidyverse)
+> library(glmnet)
+Loading required package: Matrix
+Loaded glmnet 4.0-2
+> 
+> NO_CLUSTERS.REF <- 2 # 3 
+> 
+> outdir  <- './data/'
+> dir.create(outdir )
+Warning message:
+In dir.create(outdir) : './data' already exists
+> 
+> # Load training data 
+> #-------------------
+> NO_META_COLS = 1
+> fname_data <- './data/racipe.models.wt.labeled.csv'
+> mydata = read.csv(file=fname_data, header=TRUE)
+> dim(mydata)
+[1] 10000    30
+> mydata <- mydata[mydata$CLUSTER_NO!=3, ]
+> dim(mydata)
+[1] 9358   30
+> 
+> mydata$CLUSTER_NO <- as.numeric(mydata$CLUSTER_NO==1)
+> mydata$CLUSTER_NO <- factor(mydata$CLUSTER_NO)
+> unique(mydata$CLUSTER_NO)
+[1] 1 0
+Levels: 0 1
+> 
+> # randomize data 
+> set.seed(1)
+> mydata <- mydata[sample(nrow(mydata)), ]
+> 
+> x <- model.matrix(CLUSTER_NO ~., mydata)[,-1] 
+> y <- ifelse(mydata$CLUSTER_NO == 1, 1, 0)
+> head(y)
+[1] 1 0 0 0 0 0
+> 
+> cv.glmnet.obj <- cv.glmnet(x, y, alpha = 1.0, family = "binomial") 
+> model.glmnet <- glmnet(x, y, alpha = 1, family = "binomial",
++                 lambda = cv.glmnet.obj$lambda.1se #cv.glmnet.obj$lambda.min
++ )
+> 
+> fname.out <- paste(outdir, 'cv.glmnet.obj.rds', sep = '') 
+> saveRDS(cv.glmnet.obj, file = fname.out)
+> 
+> fname.out <- paste(outdir, 'model.glmnet.rds', sep = '') 
+> saveRDS(model.glmnet, file = fname.out)
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  8.204   0.233   8.456 
